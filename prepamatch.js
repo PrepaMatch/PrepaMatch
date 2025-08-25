@@ -333,3 +333,36 @@ async function supprimerTrajet() {
 
 chargerTrajets();
 
+async function appliquerFiltres() {
+  const depart = document.getElementById('filtreDepart').value.trim();
+  const arrivee = document.getElementById('filtreArrivee').value.trim();
+  const date = document.getElementById('filtreDate').value;
+
+  try {
+    showLoading();
+    if (!supabaseClient) throw new Error('Supabase non initialisé');
+
+    let query = supabaseClient
+      .from('trajets')
+      .select('*')
+      .order('date_trajet', { ascending: true })
+      .order('heure_depart', { ascending: true });
+
+    if (depart) query = query.eq('ville_depart', depart);
+    if (arrivee) query = query.eq('ville_arrivee', arrivee);
+    if (date) query = query.eq('date_trajet', date);
+    else {
+      // Par défaut : uniquement trajets futurs
+      const today = new Date().toISOString().split('T')[0];
+      query = query.gte('date_trajet', today);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    afficherTrajets(data || []);
+  } catch (e) {
+    console.error('Filtre error:', e);
+    showError('Impossible de charger les trajets filtrés', e.message || String(e));
+  }
+}
