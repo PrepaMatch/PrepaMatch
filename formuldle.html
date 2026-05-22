@@ -5,994 +5,1232 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Formuldle</title>
 <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=JetBrains+Mono:wght@400;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <style>
-  :root {
-    --bg: #0f1117;
-    --surface: #1a1d27;
-    --surface2: #242736;
-    --chalk: #e8e4d9;
-    --chalk-dim: #9b9585;
-    --green: #4caf7d;
-    --yellow: #d4a843;
-    --red: #c0392b;
-    --blue: #5b9bd5;
-    --border: #2e3244;
-    --glow: rgba(91,155,213,0.15);
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--chalk);
-    font-family: 'Crimson Pro', Georgia, serif;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    overflow-x: hidden;
-  }
-
-  /* Subtle grid background */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .wrapper {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 680px;
-    padding: 0 16px 40px;
-  }
-
-  /* HEADER */
-  header {
-    text-align: center;
-    padding: 28px 0 20px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 24px;
-  }
-
-  .logo {
-    font-family: 'IM Fell English', serif;
-    font-size: 2.6rem;
-    letter-spacing: 0.04em;
-    color: var(--chalk);
-    position: relative;
-    display: inline-block;
-  }
-
-  .logo span {
-    color: var(--blue);
-  }
-
-  .tagline {
-    font-style: italic;
-    color: var(--chalk-dim);
-    font-size: 0.95rem;
-    margin-top: 4px;
-  }
-
-  .score-bar {
-    display: flex;
-    justify-content: center;
-    gap: 24px;
-    margin-top: 14px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.78rem;
-    color: var(--chalk-dim);
-  }
-
-  .score-bar span { color: var(--chalk); font-weight: 700; }
-
-  /* FORMULA DISPLAY */
-  .formula-display {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 24px;
-    text-align: center;
-    margin-bottom: 20px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .formula-display::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--blue), transparent, var(--blue));
-    opacity: 0.4;
-  }
-
-  .formula-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--chalk-dim);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    margin-bottom: 12px;
-  }
-
-  .formula-text {
-    font-family: 'IM Fell English', serif;
-    font-size: 2.4rem;
-    color: var(--chalk);
-    line-height: 1.3;
-    text-shadow: 0 0 30px rgba(232,228,217,0.15);
-    min-height: 3.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .attempts-left {
-    margin-top: 12px;
-    font-size: 0.82rem;
-    color: var(--chalk-dim);
-  }
-
-  .attempt-dots {
-    display: inline-flex;
-    gap: 5px;
-    margin-left: 8px;
-    vertical-align: middle;
-  }
-
-  .dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--blue);
-    transition: background 0.3s;
-  }
-
-  .dot.used { background: var(--border); }
-
-  /* CATEGORIES GRID */
-  .categories-title {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--chalk-dim);
-    margin-bottom: 12px;
-  }
-
-  .categories-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-
-  .category-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 16px;
-    cursor: pointer;
-    transition: all 0.18s ease;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .category-card:hover {
-    border-color: var(--blue);
-    background: var(--surface2);
-    transform: translateY(-1px);
-  }
-
-  .category-card.revealed {
-    cursor: default;
-  }
-
-  .category-card.correct {
-    border-color: var(--green);
-    background: rgba(76,175,125,0.08);
-  }
-
-  .category-card.wrong {
-    border-color: var(--red);
-    background: rgba(192,57,43,0.08);
-  }
-
-  .category-card.partial {
-    border-color: var(--yellow);
-    background: rgba(212,168,67,0.08);
-  }
-
-  .cat-name {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--chalk-dim);
-    margin-bottom: 6px;
-  }
-
-  .cat-value {
-    font-size: 1.05rem;
-    color: var(--chalk);
-    font-weight: 600;
-    min-height: 1.4rem;
-  }
-
-  .cat-value.hidden {
-    color: transparent;
-    background: var(--border);
-    border-radius: 4px;
-    user-select: none;
-  }
-
-  .cat-icon {
-    position: absolute;
-    top: 10px; right: 12px;
-    font-size: 1.1rem;
-    opacity: 0.5;
-  }
-
-  .reveal-hint {
-    font-size: 0.72rem;
-    color: var(--blue);
-    margin-top: 4px;
-    opacity: 0.8;
-  }
-
-  /* GUESS AREA */
-  .guess-section {
-    margin-bottom: 20px;
-  }
-
-  .guess-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--chalk-dim);
-    margin-bottom: 10px;
-  }
-
-  .guess-options {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    max-height: 320px;
-    overflow-y: auto;
-    padding-right: 4px;
-  }
-
-  .guess-options::-webkit-scrollbar { width: 4px; }
-  .guess-options::-webkit-scrollbar-track { background: var(--bg); }
-  .guess-options::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  .guess-btn {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px 16px;
-    color: var(--chalk);
-    font-family: 'Crimson Pro', serif;
-    font-size: 1rem;
-    text-align: left;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .guess-btn:hover {
-    border-color: var(--blue);
-    background: var(--surface2);
-  }
-
-  .guess-btn .formula-preview {
-    font-family: 'IM Fell English', serif;
-    font-size: 1.15rem;
-    min-width: 70px;
-    color: var(--blue);
-  }
-
-  .guess-btn .formula-name {
-    flex: 1;
-    font-size: 0.9rem;
-    color: var(--chalk-dim);
-  }
-
-  /* HISTORY */
-  .history-section {
-    margin-bottom: 20px;
-  }
-
-  /* HISTORY */
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateY(-6px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .history-item {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    margin-bottom: 10px;
-    overflow: hidden;
-    animation: slideIn 0.25s ease;
-  }
-
-  .history-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px 8px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .history-formula {
-    font-family: 'IM Fell English', serif;
-    font-size: 1.15rem;
-    color: var(--chalk-dim);
-    min-width: 0;
-  }
-
-  .history-name {
-    flex: 1;
-    color: var(--chalk-dim);
-    font-size: 0.82rem;
-    font-style: italic;
-    min-width: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .history-cats {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 0;
-  }
-
-  .hcat {
-    padding: 8px 10px;
-    border-right: 1px solid var(--border);
-    position: relative;
-  }
-
-  .hcat:last-child { border-right: none; }
-
-  .hcat.correct { background: rgba(76,175,125,0.13); }
-  .hcat.partial  { background: rgba(212,168,67,0.13); }
-  .hcat.wrong    { background: transparent; }
-
-  .hcat-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.55rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    margin-bottom: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .hcat.correct .hcat-label { color: var(--green); }
-  .hcat.partial .hcat-label { color: var(--yellow); }
-  .hcat.wrong   .hcat-label { color: var(--chalk-dim); }
-
-  .hcat-value {
-    font-size: 0.78rem;
-    color: var(--chalk);
-    line-height: 1.25;
-    word-break: break-word;
-  }
-
-  .hcat.wrong .hcat-value { color: var(--chalk-dim); }
-
-  .hcat-arrow {
-    font-size: 0.85rem;
-    margin-left: 3px;
-    vertical-align: middle;
-  }
-
-  /* RESULT */
-  .result-panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 28px;
-    text-align: center;
-    margin-bottom: 20px;
-    animation: fadeIn 0.4s ease;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .result-panel.win { border-color: var(--green); }
-  .result-panel.lose { border-color: var(--red); }
-
-  .result-emoji { font-size: 2.8rem; margin-bottom: 12px; }
-
-  .result-title {
-    font-family: 'IM Fell English', serif;
-    font-size: 1.7rem;
-    margin-bottom: 8px;
-  }
-
-  .result-formula {
-    font-family: 'IM Fell English', serif;
-    font-size: 2.2rem;
-    color: var(--blue);
-    margin: 12px 0 4px;
-  }
-
-  .result-name {
-    font-size: 1rem;
-    color: var(--chalk-dim);
-    font-style: italic;
-    margin-bottom: 16px;
-  }
-
-  .result-fact {
-    background: var(--surface2);
-    border-radius: 8px;
-    padding: 12px 16px;
-    font-size: 0.9rem;
-    color: var(--chalk-dim);
-    line-height: 1.5;
-    margin-bottom: 20px;
-    font-style: italic;
-  }
-
-  .btn-primary {
-    background: var(--blue);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 12px 28px;
-    font-family: 'Crimson Pro', serif;
-    font-size: 1rem;
-    cursor: pointer;
-    letter-spacing: 0.03em;
-    transition: opacity 0.15s;
-  }
-
-  .btn-primary:hover { opacity: 0.85; }
-
-  /* SEARCH */
-  .search-wrap {
-    position: relative;
-    margin-bottom: 10px;
-  }
-
-  .search-input {
-    width: 100%;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 11px 16px;
-    color: var(--chalk);
-    font-family: 'Crimson Pro', serif;
-    font-size: 1rem;
-    outline: none;
-    transition: border-color 0.15s;
-  }
-
-  .search-input:focus { border-color: var(--blue); }
-  .search-input::placeholder { color: var(--chalk-dim); }
-
-  /* TOOLTIP */
-  .tooltip {
-    position: fixed;
-    background: var(--surface2);
-    border: 1px solid var(--blue);
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 0.8rem;
-    color: var(--chalk);
-    pointer-events: none;
-    z-index: 100;
-    opacity: 0;
-    transition: opacity 0.15s;
-    max-width: 200px;
-  }
-
-  /* REVEAL animation */
-  @keyframes pop {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.06); }
-    100% { transform: scale(1); }
-  }
-
-  .pop { animation: pop 0.3s ease; }
-
-  /* How to play */
-  .how-to {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px 20px;
-    margin-bottom: 20px;
-    font-size: 0.88rem;
-    color: var(--chalk-dim);
-    line-height: 1.6;
-  }
-
-  .how-to strong { color: var(--chalk); }
-
-  .how-to h3 {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.68rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--chalk-dim);
-    margin-bottom: 8px;
-  }
-
-  .legend {
-    display: flex;
-    gap: 12px;
-    margin-top: 8px;
-    flex-wrap: wrap;
-  }
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.8rem;
-  }
-
-  .legend-dot {
-    width: 12px; height: 12px;
-    border-radius: 3px;
-  }
+:root {
+  --bg: #0d0f18;
+  --surface: #161925;
+  --surface2: #1f2335;
+  --surface3: #252a3d;
+  --chalk: #e8e4d9;
+  --chalk-dim: #7a7669;
+  --chalk-mid: #b8b3a6;
+  --green: #3dba77;
+  --green-bg: rgba(61,186,119,0.10);
+  --yellow: #d4a843;
+  --yellow-bg: rgba(212,168,67,0.10);
+  --red: #e05252;
+  --red-bg: rgba(224,82,82,0.10);
+  --blue: #5b9bd5;
+  --blue-bg: rgba(91,155,213,0.10);
+  --border: #252a3d;
+  --border2: #2e3450;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--chalk);
+  font-family: 'Crimson Pro', Georgia, serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(91,155,213,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(91,155,213,0.025) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none; z-index: 0;
+}
+
+.wrapper {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 720px;
+  padding: 0 16px 60px;
+}
+
+/* ── HEADER ── */
+header {
+  text-align: center;
+  padding: 32px 0 18px;
+  border-bottom: 1px solid var(--border2);
+  margin-bottom: 22px;
+}
+.logo {
+  font-family: 'IM Fell English', serif;
+  font-size: 2.8rem;
+  letter-spacing: 0.05em;
+}
+.logo .accent { color: var(--blue); }
+.tagline { font-style: italic; color: var(--chalk-dim); font-size: 0.92rem; margin-top: 3px; }
+.score-bar {
+  display: flex; justify-content: center; gap: 28px;
+  margin-top: 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem; color: var(--chalk-dim);
+}
+.score-bar b { color: var(--chalk); font-weight: 700; font-size: 0.85rem; }
+.score-bar .pts { color: var(--yellow); }
+
+/* ── FORMULA CARD ── */
+.formula-card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  padding: 28px 24px 20px;
+  text-align: center;
+  margin-bottom: 18px;
+  position: relative; overflow: hidden;
+}
+.formula-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, transparent, var(--blue), transparent);
+  opacity: 0.5;
+}
+.formula-card-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--chalk-dim); margin-bottom: 16px;
+}
+.formula-display {
+  font-size: 1.6rem; min-height: 3.8rem;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--chalk);
+}
+.formula-display .katex { font-size: 1.5em; }
+.formula-question-mark {
+  font-family: 'IM Fell English', serif;
+  font-size: 3.2rem; color: var(--border2);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:.9} }
+
+/* Attempt dots */
+.attempt-track {
+  display: flex; align-items: center; justify-content: center;
+  gap: 6px; margin-top: 14px;
+}
+.adot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--blue); border: 1px solid transparent;
+  transition: all .3s;
+}
+.adot.used-ok  { background: var(--green); }
+.adot.used-bad { background: var(--red); }
+.adot.used-empty { background: var(--border2); border-color: var(--border2); }
+.attempt-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem; color: var(--chalk-dim); margin-left: 8px;
+}
+
+/* ── TARGET CATEGORIES (top reveal panel) ── */
+.cats-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--chalk-dim); margin-bottom: 10px;
+}
+.cats-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 8px; margin-bottom: 18px;
+}
+.cat-tile {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all .18s;
+  position: relative; overflow: hidden;
+  min-height: 68px;
+}
+.cat-tile:hover:not(.locked) {
+  border-color: var(--blue);
+  background: var(--surface2);
+  transform: translateY(-1px);
+}
+.cat-tile.locked { cursor: default; }
+.cat-tile-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--chalk-dim); margin-bottom: 5px;
+}
+.cat-tile-val {
+  font-size: 0.92rem; font-weight: 600; color: var(--chalk);
+  line-height: 1.25;
+}
+.cat-tile-val.masked {
+  color: transparent; background: var(--border2);
+  border-radius: 3px; user-select: none;
+}
+.cat-tile-icon { position: absolute; top: 8px; right: 10px; font-size: 0.95rem; opacity: 0.35; }
+.cat-tile-hint { font-size: 0.65rem; color: var(--blue); margin-top: 3px; opacity: .8; }
+.cost-badge {
+  position: absolute; bottom: 6px; right: 8px;
+  background: var(--blue-bg); border: 1px solid var(--blue);
+  border-radius: 4px; padding: 1px 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.55rem; color: var(--blue);
+}
+
+/* ── HISTORY ── */
+.history-section { margin-bottom: 18px; }
+.section-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--chalk-dim); margin-bottom: 8px;
+}
+.history-item {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  animation: slideIn .28s ease;
+}
+@keyframes slideIn { from{opacity:0;transform:translateY(-5px)} to{opacity:1;transform:translateY(0)} }
+
+.history-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px 7px;
+  border-bottom: 1px solid var(--border);
+}
+.history-formula-tex {
+  font-size: 1.0rem;
+  flex-shrink: 0;
+  max-width: 180px;
+  overflow: hidden;
+}
+.history-formula-tex .katex { font-size: 1.1em; }
+.history-guess-name {
+  flex: 1; font-size: 0.8rem; font-style: italic; color: var(--chalk-dim);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.history-score-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem; padding: 2px 7px;
+  border-radius: 5px; flex-shrink: 0;
+}
+.history-score-badge.win  { background: var(--green-bg); color: var(--green); border: 1px solid var(--green); }
+.history-score-badge.miss { background: var(--red-bg);   color: var(--red);   border: 1px solid var(--red); }
+
+.hcats {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0;
+}
+.hcat {
+  padding: 7px 8px;
+  border-right: 1px solid var(--border);
+}
+.hcat:last-child { border-right: none; }
+.hcat.correct { background: var(--green-bg); }
+.hcat.partial  { background: var(--yellow-bg); }
+.hcat.wrong    { background: var(--red-bg); }
+
+.hcat-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.5rem; letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hcat.correct .hcat-label { color: var(--green); }
+.hcat.partial .hcat-label { color: var(--yellow); }
+.hcat.wrong   .hcat-label { color: var(--red); }
+
+.hcat-val {
+  font-size: 0.72rem; line-height: 1.2;
+  word-break: break-word;
+}
+.hcat.correct .hcat-val { color: var(--chalk); }
+.hcat.partial .hcat-val { color: var(--chalk-mid); }
+.hcat.wrong   .hcat-val { color: var(--red); }
+
+.arrow { font-weight: 700; }
+
+/* ── RESULT PANEL ── */
+.result-panel {
+  border-radius: 14px; padding: 28px 24px;
+  text-align: center; margin-bottom: 18px;
+  animation: fadeUp .4s ease;
+}
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+.result-panel.win  { background: var(--green-bg); border: 1px solid var(--green); }
+.result-panel.lose { background: var(--red-bg);   border: 1px solid var(--red); }
+.result-emoji { font-size: 2.8rem; margin-bottom: 10px; }
+.result-title { font-family: 'IM Fell English', serif; font-size: 1.7rem; margin-bottom: 6px; }
+.result-formula-tex { margin: 14px 0 4px; }
+.result-formula-tex .katex { font-size: 1.8em; }
+.result-name { font-style: italic; color: var(--chalk-dim); font-size: 0.95rem; margin-bottom: 14px; }
+.result-score {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.4rem; color: var(--yellow); margin-bottom: 14px;
+}
+.result-fact {
+  background: var(--surface2); border-radius: 8px;
+  padding: 12px 16px; font-size: 0.88rem; color: var(--chalk-dim);
+  line-height: 1.55; font-style: italic; margin-bottom: 20px;
+  text-align: left;
+}
+.btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.btn { border: none; border-radius: 8px; padding: 11px 24px; font-family: 'Crimson Pro', serif; font-size: 1rem; cursor: pointer; transition: opacity .15s; }
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-secondary { background: var(--surface3); color: var(--chalk); border: 1px solid var(--border2); }
+.btn:hover { opacity: .82; }
+
+/* ── GUESS AREA ── */
+.guess-section { margin-bottom: 18px; }
+.search-wrap { position: relative; margin-bottom: 9px; }
+.search-input {
+  width: 100%; background: var(--surface);
+  border: 1px solid var(--border2); border-radius: 8px;
+  padding: 11px 14px; color: var(--chalk);
+  font-family: 'Crimson Pro', serif; font-size: 1rem;
+  outline: none; transition: border-color .15s;
+}
+.search-input:focus { border-color: var(--blue); }
+.search-input::placeholder { color: var(--chalk-dim); }
+
+.guess-options {
+  display: flex; flex-direction: column; gap: 6px;
+  max-height: 300px; overflow-y: auto; padding-right: 4px;
+}
+.guess-options::-webkit-scrollbar { width: 4px; }
+.guess-options::-webkit-scrollbar-track { background: transparent; }
+.guess-options::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.guess-btn {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 8px; padding: 10px 14px;
+  color: var(--chalk); text-align: left;
+  cursor: pointer; transition: all .14s;
+  display: flex; align-items: center; gap: 12px;
+}
+.guess-btn:hover { border-color: var(--blue); background: var(--surface2); }
+.guess-btn-tex { min-width: 100px; flex-shrink: 0; font-size: 0.9rem; }
+.guess-btn-tex .katex { font-size: 1.05em; }
+.guess-btn-name { flex: 1; font-size: 0.84rem; color: var(--chalk-dim); font-style: italic; }
+.guess-btn-domain {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem; color: var(--blue); flex-shrink: 0;
+  background: var(--blue-bg); border-radius: 4px; padding: 2px 6px;
+}
+
+/* ── HOW TO PLAY ── */
+.how-to {
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 10px; padding: 14px 18px; margin-bottom: 18px;
+  font-size: 0.87rem; color: var(--chalk-dim); line-height: 1.6;
+}
+.how-to h3 {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.63rem;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--chalk-mid); margin-bottom: 6px;
+}
+.legend { display: flex; gap: 14px; margin-top: 7px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; }
+.ldot { width: 11px; height: 11px; border-radius: 3px; }
+
+/* ── BONUS TOAST ── */
+.toast {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-60px);
+  background: var(--yellow); color: #1a1400;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700;
+  padding: 10px 20px; border-radius: 8px; z-index: 999;
+  transition: transform .35s cubic-bezier(.34,1.56,.64,1), opacity .35s;
+  opacity: 0; pointer-events: none; white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+/* ── SHARE GRID ── */
+.share-grid {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.2rem; letter-spacing: 0.08em;
+  background: var(--surface2); border-radius: 8px;
+  padding: 10px 14px; margin-bottom: 14px;
+  text-align: center; line-height: 1.7;
+  border: 1px solid var(--border2);
+}
+
+/* responsive */
+@media (max-width: 540px) {
+  .hcats { grid-template-columns: repeat(3, 1fr); }
+  .hcat:nth-child(3) { border-right: none; }
+  .hcat:nth-child(4) { border-top: 1px solid var(--border); }
+  .cats-grid { grid-template-columns: repeat(2, 1fr); }
+}
 </style>
 </head>
 <body>
 <div class="wrapper">
 
-  <header>
-    <div class="logo">For<span>mul</span>dle</div>
-    <div class="tagline">Devinez la formule du jour — mathématiques & physique</div>
-    <div class="score-bar">
-      <div>Série : <span id="streak">0</span> 🔥</div>
-      <div>Victoires : <span id="wins">0</span></div>
-      <div>Parties : <span id="played">0</span></div>
-    </div>
-  </header>
+<header>
+  <div class="logo">For<span class="accent">mul</span>dle</div>
+  <div class="tagline">Devinez la formule — mathématiques &amp; physique</div>
+  <div class="score-bar">
+    <div>🔥 Série&nbsp;<b id="stat-streak">0</b></div>
+    <div>✅ Victoires&nbsp;<b id="stat-wins">0</b></div>
+    <div>🎮 Parties&nbsp;<b id="stat-played">0</b></div>
+    <div>⭐ Score&nbsp;<b class="pts" id="stat-score">0</b></div>
+  </div>
+</header>
 
-  <div id="game-area"></div>
+<div id="game-area"></div>
 
-  <div class="tooltip" id="tooltip"></div>
 </div>
 
+<div class="toast" id="toast"></div>
+
+
+
 <script>
-// ============================================================
-// DATA
-// ============================================================
+// ═══════════════════════════════════════════════════════
+// DATA  —  40 formules
+// ═══════════════════════════════════════════════════════
+// complexity scale (for arrows):
+// 1=triviale, 2=lycée, 3=prépa/licence, 4=master, 5=recherche
+
 const FORMULAS = [
+  /* ─── PHYSIQUE ─── */
   {
-    formula: "E = mc²",
+    latex: "E = mc^2",
     name: "Équivalence masse-énergie",
-    domain: "Physique relativiste",
+    domain: "Relativité",
     author: "Einstein",
     era: "XXe siècle",
     type: "Relation fondamentale",
     field: "Physique",
-    fact: "Publiée en 1905, cette formule montre que la masse et l'énergie sont équivalentes. Elle est à la base de la physique nucléaire."
+    complexity: 2,
+    fact: "Publiée en 1905 dans le cadre de la relativité restreinte, cette formule montre que la masse et l'énergie sont équivalentes. Elle est à la base de la physique nucléaire et des réacteurs à fission."
   },
   {
-    formula: "F = ma",
+    latex: "F = ma",
     name: "2e loi de Newton",
     domain: "Mécanique classique",
     author: "Newton",
     era: "XVIIe siècle",
     type: "Loi fondamentale",
     field: "Physique",
-    fact: "La deuxième loi du mouvement de Newton : la force appliquée sur un objet est égale à sa masse multipliée par son accélération."
+    complexity: 1,
+    fact: "La deuxième loi du mouvement : la résultante des forces appliquées sur un objet est égale au produit de sa masse par son accélération. Fondement de la mécanique classique pendant trois siècles."
   },
   {
-    formula: "a² + b² = c²",
-    name: "Théorème de Pythagore",
-    domain: "Géométrie",
-    author: "Pythagore",
-    era: "Antiquité",
-    type: "Théorème géométrique",
-    field: "Mathématiques",
-    fact: "L'un des théorèmes les plus anciens et les plus célèbres des mathématiques, connu 1000 ans avant Pythagore en Babylonie."
-  },
-  {
-    formula: "eⁱᵖ + 1 = 0",
-    name: "Identité d'Euler",
-    domain: "Analyse complexe",
-    author: "Euler",
-    era: "XVIIIe siècle",
-    type: "Identité remarquable",
-    field: "Mathématiques",
-    fact: "Souvent appelée « la plus belle formule des mathématiques », elle relie les cinq constantes fondamentales : e, i, π, 1 et 0."
-  },
-  {
-    formula: "F = Gm₁m₂/r²",
+    latex: "F = G\\frac{m_1 m_2}{r^2}",
     name: "Loi de gravitation universelle",
     domain: "Mécanique céleste",
     author: "Newton",
     era: "XVIIe siècle",
     type: "Loi fondamentale",
     field: "Physique",
-    fact: "Newton aurait eu l'idée en voyant une pomme tomber. Elle décrit l'attraction gravitationnelle entre deux corps massifs."
+    complexity: 2,
+    fact: "Newton aurait eu l'idée en observant une pomme tomber. Cette loi décrit l'attraction gravitationnelle entre deux corps massifs et permit de prédire les orbites planétaires avec une précision remarquable."
   },
   {
-    formula: "PV = nRT",
-    name: "Loi des gaz parfaits",
-    domain: "Thermodynamique",
-    author: "Clapeyron",
-    era: "XIXe siècle",
-    type: "Équation d'état",
-    field: "Physique-Chimie",
-    fact: "Synthèse des lois de Boyle, Charles et Gay-Lussac. Elle décrit le comportement idéal des gaz à l'échelle macroscopique."
-  },
-  {
-    formula: "∫∫∫ div F dV = ∯ F·dS",
-    name: "Théorème de Gauss-Ostrogradski",
-    domain: "Analyse vectorielle",
-    author: "Gauss",
-    era: "XIXe siècle",
-    type: "Théorème d'intégration",
-    field: "Mathématiques",
-    fact: "Ce théorème relie le flux d'un champ vectoriel à travers une surface fermée à la divergence du champ dans le volume qu'elle délimite."
-  },
-  {
-    formula: "iℏ ∂ψ/∂t = Ĥψ",
+    latex: "i\\hbar\\frac{\\partial \\psi}{\\partial t} = \\hat{H}\\psi",
     name: "Équation de Schrödinger",
     domain: "Mécanique quantique",
     author: "Schrödinger",
     era: "XXe siècle",
     type: "Équation différentielle",
     field: "Physique",
-    fact: "L'équation centrale de la mécanique quantique, décrivant l'évolution temporelle de la fonction d'onde d'un système quantique."
+    complexity: 5,
+    fact: "L'équation centrale de la mécanique quantique, décrivant l'évolution temporelle de la fonction d'onde ψ. Son interprétation probabiliste fut au cœur d'un célèbre débat entre Einstein et Bohr."
   },
   {
-    formula: "S = k ln(Ω)",
+    latex: "S = k_B \\ln \\Omega",
     name: "Entropie de Boltzmann",
     domain: "Physique statistique",
     author: "Boltzmann",
     era: "XIXe siècle",
     type: "Définition statistique",
     field: "Physique",
-    fact: "Cette formule est gravée sur la tombe de Boltzmann à Vienne. Elle relie l'entropie macroscopique au nombre de micro-états Ω."
+    complexity: 4,
+    fact: "Cette formule est gravée sur la tombe de Boltzmann à Vienne. Elle relie l'entropie macroscopique au nombre Ω de micro-états compatibles, fondant la physique statistique."
   },
   {
-    formula: "P(A|B) = P(B|A)P(A)/P(B)",
-    name: "Théorème de Bayes",
-    domain: "Probabilités",
-    author: "Bayes",
-    era: "XVIIIe siècle",
-    type: "Théorème probabiliste",
-    field: "Mathématiques",
-    fact: "Fondement de l'inférence bayésienne, utilisé aujourd'hui en intelligence artificielle, médecine diagnostique et finance."
+    latex: "PV = nRT",
+    name: "Loi des gaz parfaits",
+    domain: "Thermodynamique",
+    author: "Clapeyron",
+    era: "XIXe siècle",
+    type: "Équation d'état",
+    field: "Physique",
+    complexity: 2,
+    fact: "Synthèse des lois de Boyle, Charles et Gay-Lussac, formulée par Clapeyron en 1834. Elle décrit le comportement idéal des gaz à basse pression et haute température."
   },
   {
-    formula: "∇ × B = μ₀J + μ₀ε₀∂E/∂t",
+    latex: "\\nabla \\times \\mathbf{B} = \\mu_0 \\mathbf{J} + \\mu_0\\varepsilon_0\\frac{\\partial \\mathbf{E}}{\\partial t}",
     name: "Équation de Maxwell-Ampère",
     domain: "Électromagnétisme",
     author: "Maxwell",
     era: "XIXe siècle",
     type: "Équation de champ",
     field: "Physique",
-    fact: "L'une des 4 équations de Maxwell. Le terme ε₀∂E/∂t, ajouté par Maxwell, prédit l'existence des ondes électromagnétiques."
+    complexity: 5,
+    fact: "Le terme ε₀∂E/∂t, ajouté par Maxwell au travail d'Ampère, est le courant de déplacement. Il permit de prédire l'existence des ondes électromagnétiques se propageant à la vitesse de la lumière."
   },
   {
-    formula: "x = (-b ± √Δ) / 2a",
+    latex: "\\nabla \\cdot \\mathbf{E} = \\frac{\\rho}{\\varepsilon_0}",
+    name: "Loi de Gauss (électrostatique)",
+    domain: "Électromagnétisme",
+    author: "Gauss",
+    era: "XIXe siècle",
+    type: "Équation de champ",
+    field: "Physique",
+    complexity: 4,
+    fact: "La première des équations de Maxwell relie la divergence du champ électrique à la densité volumique de charges. Elle est l'expression différentielle du théorème de Gauss."
+  },
+  {
+    latex: "\\Delta x \\cdot \\Delta p \\geq \\frac{\\hbar}{2}",
+    name: "Principe d'incertitude de Heisenberg",
+    domain: "Mécanique quantique",
+    author: "Heisenberg",
+    era: "XXe siècle",
+    type: "Inégalité fondamentale",
+    field: "Physique",
+    complexity: 4,
+    fact: "Il est impossible de connaître simultanément et avec une précision arbitraire la position et la quantité de mouvement d'une particule. Ce n'est pas une limite instrumentale, mais une propriété fondamentale de la nature."
+  },
+  {
+    latex: "E^2 = (pc)^2 + (m_0 c^2)^2",
+    name: "Relation énergie-impulsion",
+    domain: "Relativité",
+    author: "Einstein",
+    era: "XXe siècle",
+    type: "Relation fondamentale",
+    field: "Physique",
+    complexity: 4,
+    fact: "Généralisation relativiste de E=mc². Pour un photon (m₀=0), elle donne E=pc. Elle unifie masse, énergie et impulsion dans le cadre de la relativité restreinte."
+  },
+  {
+    latex: "F = q(\\mathbf{E} + \\mathbf{v} \\times \\mathbf{B})",
+    name: "Force de Lorentz",
+    domain: "Électromagnétisme",
+    author: "Lorentz",
+    era: "XIXe siècle",
+    type: "Loi fondamentale",
+    field: "Physique",
+    complexity: 3,
+    fact: "La force subie par une charge q dans un champ électromagnétique. Le terme v×B est la force magnétique, toujours perpendiculaire à la vitesse : elle ne travaille jamais."
+  },
+  {
+    latex: "\\lambda = \\frac{h}{p}",
+    name: "Relation de De Broglie",
+    domain: "Mécanique quantique",
+    author: "De Broglie",
+    era: "XXe siècle",
+    type: "Dualité onde-corpuscule",
+    field: "Physique",
+    complexity: 3,
+    fact: "De Broglie proposa dans sa thèse de 1924 que toute particule possède une longueur d'onde λ=h/p. Confirmée expérimentalement par Davisson et Germer en 1927, cette idée valut à De Broglie le prix Nobel."
+  },
+
+  /* ─── MATHÉMATIQUES ─── */
+  {
+    latex: "a^2 + b^2 = c^2",
+    name: "Théorème de Pythagore",
+    domain: "Géométrie euclidienne",
+    author: "Pythagore",
+    era: "Antiquité",
+    type: "Théorème géométrique",
+    field: "Mathématiques",
+    complexity: 1,
+    fact: "L'un des théorèmes les plus anciens, connu des Babyloniens 1000 ans avant Pythagore. Il caractérise les triangles rectangles et est à la base de toute la trigonométrie."
+  },
+  {
+    latex: "e^{i\\pi} + 1 = 0",
+    name: "Identité d'Euler",
+    domain: "Analyse complexe",
+    author: "Euler",
+    era: "XVIIIe siècle",
+    type: "Identité remarquable",
+    field: "Mathématiques",
+    complexity: 3,
+    fact: "Souvent élue « plus belle formule des mathématiques » : elle relie les cinq constantes fondamentales e, i, π, 1 et 0 dans une seule équation d'une simplicité déconcertante."
+  },
+  {
+    latex: "e^{i\\theta} = \\cos\\theta + i\\sin\\theta",
+    name: "Formule d'Euler",
+    domain: "Analyse complexe",
+    author: "Euler",
+    era: "XVIIIe siècle",
+    type: "Formule fondamentale",
+    field: "Mathématiques",
+    complexity: 3,
+    fact: "Fondement de toute l'analyse de Fourier et du traitement du signal. Elle permet de représenter les oscillations et rotations de façon unifiée via les exponentielles complexes."
+  },
+  {
+    latex: "P(A|B) = \\frac{P(B|A)\\,P(A)}{P(B)}",
+    name: "Théorème de Bayes",
+    domain: "Probabilités",
+    author: "Bayes",
+    era: "XVIIIe siècle",
+    type: "Théorème probabiliste",
+    field: "Mathématiques",
+    complexity: 3,
+    fact: "Fondement de l'inférence bayésienne, aujourd'hui omniprésente en IA, médecine diagnostique et finance. Il permet de mettre à jour une croyance a priori à la lumière de nouvelles données."
+  },
+  {
+    latex: "x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}",
     name: "Formule quadratique",
     domain: "Algèbre",
     author: "Al-Khwarizmi",
     era: "IXe siècle",
     type: "Formule algébrique",
     field: "Mathématiques",
-    fact: "Al-Khwarizmi, père de l'algèbre, a développé des méthodes pour résoudre les équations du second degré. Le mot 'algèbre' vient de son traité."
+    complexity: 1,
+    fact: "Al-Khwarizmi, père de l'algèbre, développa des méthodes pour résoudre les équations du second degré. Le mot « algèbre » vient du titre de son traité : Al-Kitāb al-mukhtaṣar fī ḥisāb al-jabr."
+  },
+  {
+    latex: "\\sum_{k=0}^{\\infty} x^k = \\frac{1}{1-x}, \\; |x|<1",
+    name: "Série géométrique",
+    domain: "Analyse",
+    author: "Euler",
+    era: "XVIIIe siècle",
+    type: "Série entière",
+    field: "Mathématiques",
+    complexity: 2,
+    fact: "La série géométrique est l'une des premières séries dont la somme a été calculée rigoureusement. Elle est omniprésente en analyse, probabilités et physique (développements limités, fonctions génératrices)."
+  },
+  {
+    latex: "\\iint_D (\\partial_x Q - \\partial_y P)\\,dA = \\oint_{\\partial D} P\\,dx + Q\\,dy",
+    name: "Formule de Green",
+    domain: "Analyse vectorielle",
+    author: "Green",
+    era: "XIXe siècle",
+    type: "Théorème d'intégration",
+    field: "Mathématiques",
+    complexity: 4,
+    fact: "Cas particulier du théorème de Stokes dans le plan. George Green, autodidacte, l'a publié dans un essai de 1828. Elle relie une intégrale de surface à une intégrale curviligne sur son bord."
+  },
+  {
+    latex: "\\oiint_S \\mathbf{F}\\cdot d\\mathbf{S} = \\iiint_V \\nabla \\cdot \\mathbf{F}\\,dV",
+    name: "Théorème de la divergence (Gauss-Ostrogradski)",
+    domain: "Analyse vectorielle",
+    author: "Gauss",
+    era: "XIXe siècle",
+    type: "Théorème d'intégration",
+    field: "Mathématiques",
+    complexity: 4,
+    fact: "Relie le flux d'un champ vectoriel à travers une surface fermée à la divergence dans le volume. Indispensable en électromagnétisme (loi de Gauss) et en mécanique des fluides (équation de continuité)."
+  },
+  {
+    latex: "n! \\sim \\sqrt{2\\pi n}\\left(\\frac{n}{e}\\right)^n",
+    name: "Formule de Stirling",
+    domain: "Analyse",
+    author: "Stirling",
+    era: "XVIIIe siècle",
+    type: "Équivalent asymptotique",
+    field: "Mathématiques",
+    complexity: 3,
+    fact: "Donne un équivalent de n! pour les grands n. Essentielle en combinatoire, physique statistique (calcul de l'entropie) et théorie de l'information. L'erreur relative tend vers 0."
+  },
+  {
+    latex: "\\zeta(s) = \\sum_{n=1}^{\\infty} \\frac{1}{n^s}",
+    name: "Fonction zêta de Riemann",
+    domain: "Théorie des nombres",
+    author: "Riemann",
+    era: "XIXe siècle",
+    type: "Série de Dirichlet",
+    field: "Mathématiques",
+    complexity: 5,
+    fact: "L'hypothèse de Riemann (1859), qui stipule que tous les zéros non triviaux ont partie réelle 1/2, est l'un des problèmes du millénaire. Elle est profondément liée à la distribution des nombres premiers."
+  },
+  {
+    latex: "f(x) = \\sum_{n=-\\infty}^{\\infty} c_n e^{inx}",
+    name: "Série de Fourier",
+    domain: "Analyse harmonique",
+    author: "Fourier",
+    era: "XIXe siècle",
+    type: "Décomposition spectrale",
+    field: "Mathématiques",
+    complexity: 3,
+    fact: "Fourier a développé cette décomposition pour résoudre l'équation de la chaleur. Elle est à la base du traitement du signal, de la musique numérique, de l'imagerie médicale (IRM) et de la JPEG."
+  },
+  {
+    latex: "\\binom{n}{k} = \\frac{n!}{k!(n-k)!}",
+    name: "Coefficient binomial",
+    domain: "Combinatoire",
+    author: "Pascal",
+    era: "XVIIe siècle",
+    type: "Formule combinatoire",
+    field: "Mathématiques",
+    complexity: 2,
+    fact: "Connu bien avant Pascal, notamment par Omar Khayyam et les mathématiciens chinois. Il donne le nombre de façons de choisir k éléments parmi n, et apparaît dans le développement de (a+b)ⁿ."
+  },
+  {
+    latex: "(a+b)^n = \\sum_{k=0}^{n}\\binom{n}{k}a^k b^{n-k}",
+    name: "Théorème binomial de Newton",
+    domain: "Algèbre",
+    author: "Newton",
+    era: "XVIIe siècle",
+    type: "Développement algébrique",
+    field: "Mathématiques",
+    complexity: 2,
+    fact: "Newton a généralisé ce théorème aux exposants réels (voire complexes), obtenant des séries entières. La version entière était connue de Tartaglia et Pascal, mais Newton en fit un outil d'analyse puissant."
+  },
+  {
+    latex: "\\frac{d}{dx}\\int_a^x f(t)\\,dt = f(x)",
+    name: "Théorème fondamental du calcul",
+    domain: "Analyse",
+    author: "Newton / Leibniz",
+    era: "XVIIe siècle",
+    type: "Théorème fondamental",
+    field: "Mathématiques",
+    complexity: 3,
+    fact: "Ce théorème établit le lien entre dérivation et intégration — deux opérations en apparence indépendantes. La querelle de priorité entre Newton et Leibniz est l'une des plus célèbres de l'histoire des maths."
+  },
+  {
+    latex: "\\mathbf{A}\\mathbf{x} = \\lambda \\mathbf{x}",
+    name: "Équation aux valeurs propres",
+    domain: "Algèbre linéaire",
+    author: "Cauchy",
+    era: "XIXe siècle",
+    type: "Équation matricielle",
+    field: "Mathématiques",
+    complexity: 3,
+    fact: "Fondement de la diagonalisation des matrices, de la mécanique quantique (observables = opérateurs hermitiens), de l'analyse en composantes principales (PCA) et du PageRank de Google."
+  },
+  {
+    latex: "\\det(A) = \\sum_{\\sigma \\in S_n} \\text{sgn}(\\sigma) \\prod_{i=1}^n a_{i,\\sigma(i)}",
+    name: "Déterminant (définition)",
+    domain: "Algèbre linéaire",
+    author: "Leibniz",
+    era: "XVIIe siècle",
+    type: "Définition algébrique",
+    field: "Mathématiques",
+    complexity: 4,
+    fact: "Leibniz formula pour le déterminant utilise le groupe des permutations S_n. Le déterminant mesure le facteur d'échelle volumique de la transformation linéaire associée à la matrice."
+  },
+  {
+    latex: "\\pi = 4\\sum_{k=0}^{\\infty}\\frac{(-1)^k}{2k+1}",
+    name: "Série de Leibniz pour π",
+    domain: "Analyse",
+    author: "Leibniz",
+    era: "XVIIe siècle",
+    type: "Série alternée",
+    field: "Mathématiques",
+    complexity: 2,
+    fact: "Découverte indépendamment par Madhava au XIVe siècle. Elle converge vers π/4 mais très lentement. Elle est surtout intéressante théoriquement ; d'autres formules sont bien plus efficaces numériquement."
+  },
+  /* ─── CHIMIE / PHYSICO-CHIMIE ─── */
+  {
+    latex: "\\Delta G = \\Delta H - T\\Delta S",
+    name: "Énergie libre de Gibbs",
+    domain: "Thermodynamique chimique",
+    author: "Gibbs",
+    era: "XIXe siècle",
+    type: "Fonction d'état",
+    field: "Chimie",
+    complexity: 3,
+    fact: "Willard Gibbs définit cette fonction pour caractériser la spontanéité des réactions chimiques à pression et température constantes. ΔG < 0 : réaction spontanée ; ΔG = 0 : équilibre."
+  },
+  {
+    latex: "K = e^{-\\Delta G^\\circ / RT}",
+    name: "Constante d'équilibre thermodynamique",
+    domain: "Thermodynamique chimique",
+    author: "Van 't Hoff",
+    era: "XIXe siècle",
+    type: "Relation d'équilibre",
+    field: "Chimie",
+    complexity: 3,
+    fact: "Relie la constante d'équilibre K à la variation d'énergie libre standard ΔG°. Plus ΔG° est négatif, plus K est grand et plus l'équilibre est déplacé vers les produits."
+  },
+  {
+    latex: "\\ln K(T) = -\\frac{\\Delta H^\\circ}{RT} + \\frac{\\Delta S^\\circ}{R}",
+    name: "Loi de Van 't Hoff",
+    domain: "Thermodynamique chimique",
+    author: "Van 't Hoff",
+    era: "XIXe siècle",
+    type: "Loi d'équilibre",
+    field: "Chimie",
+    complexity: 3,
+    fact: "Montre que lnK varie linéairement avec 1/T. Permet de déterminer ΔH° et ΔS° expérimentalement à partir d'une courbe lnK vs 1/T. Van 't Hoff reçut le 1er prix Nobel de chimie en 1901."
+  },
+  {
+    latex: "j = \\sigma E",
+    name: "Loi d'Ohm (forme locale)",
+    domain: "Électrocinétique",
+    author: "Ohm",
+    era: "XIXe siècle",
+    type: "Loi de transport",
+    field: "Physique",
+    complexity: 3,
+    fact: "La forme locale de la loi d'Ohm relie la densité de courant j à la conductivité σ et au champ électrique E. Plus générale que U=RI, elle s'applique en tout point d'un matériau conducteur."
+  },
+  {
+    latex: "c = \\frac{1}{\\sqrt{\\varepsilon_0 \\mu_0}}",
+    name: "Vitesse de la lumière (Maxwell)",
+    domain: "Électromagnétisme",
+    author: "Maxwell",
+    era: "XIXe siècle",
+    type: "Relation fondamentale",
+    field: "Physique",
+    complexity: 3,
+    fact: "Maxwell déduisit en 1865 que les ondes électromagnétiques se propagent à c ≈ 3×10⁸ m/s — exactement la vitesse de la lumière mesurée expérimentalement, prouvant que la lumière est une onde électromagnétique."
+  },
+  /* ─── SUPPLÉMENTAIRES ─── */
+  {
+    latex: "\\tau = r \\times F",
+    name: "Moment d'une force (couple)",
+    domain: "Mécanique classique",
+    author: "Archimède",
+    era: "Antiquité",
+    type: "Définition vectorielle",
+    field: "Physique",
+    complexity: 2,
+    fact: "Archimède a compris le principe du levier et du moment de force, déclarant « donnez-moi un point d'appui et je soulèverai le monde ». La version vectorielle avec le produit croisé est due à la formalisation moderne."
+  },
+  {
+    latex: "a_n = a_1 + (n-1)d",
+    name: "Suite arithmétique",
+    domain: "Suites et séries",
+    author: "Gauss",
+    era: "XVIIIe siècle",
+    type: "Formule de récurrence",
+    field: "Mathématiques",
+    complexity: 1,
+    fact: "Gauss aurait découvert enfant la somme des 100 premiers entiers en remarquant que les paires (1+100, 2+99, ...) donnent toutes 101. La suite arithmétique est l'une des structures les plus fondamentales."
+  },
+  {
+    latex: "S_n = \\frac{n(a_1 + a_n)}{2}",
+    name: "Somme d'une suite arithmétique",
+    domain: "Suites et séries",
+    author: "Gauss",
+    era: "XVIIIe siècle",
+    type: "Formule de sommation",
+    field: "Mathématiques",
+    complexity: 1,
+    fact: "La légende dit que Gauss, âgé de 10 ans, calcula 1+2+…+100=5050 instantanément grâce à cette astuce. Cette formule généralise ce résultat à toute suite arithmétique."
+  },
+  {
+    latex: "\\nabla^2 f = \\frac{\\partial^2 f}{\\partial x^2}+\\frac{\\partial^2 f}{\\partial y^2}+\\frac{\\partial^2 f}{\\partial z^2}",
+    name: "Opérateur Laplacien",
+    domain: "Analyse vectorielle",
+    author: "Laplace",
+    era: "XVIIIe siècle",
+    type: "Opérateur différentiel",
+    field: "Mathématiques",
+    complexity: 4,
+    fact: "Le laplacien apparaît dans l'équation de la chaleur, l'équation d'onde et l'équation de Poisson. En mécanique quantique, l'énergie cinétique est proportionnelle à ∇²ψ."
+  },
+  {
+    latex: "\\cos(a+b) = \\cos a\\cos b - \\sin a\\sin b",
+    name: "Formule d'addition cosinus",
+    domain: "Trigonométrie",
+    author: "Ptolémée",
+    era: "Antiquité",
+    type: "Identité trigonométrique",
+    field: "Mathématiques",
+    complexity: 2,
+    fact: "Connue de Ptolémée sous une forme équivalente (théorème de Ptolémée sur les quadrilatères cycliques). Elle est à la base de toutes les formules trigonométriques dérivées et de la transformée de Fourier."
+  },
+  {
+    latex: "\\frac{\\partial u}{\\partial t} = \\alpha \\nabla^2 u",
+    name: "Équation de la chaleur",
+    domain: "Équations aux dérivées partielles",
+    author: "Fourier",
+    era: "XIXe siècle",
+    type: "EDP parabolique",
+    field: "Physique",
+    complexity: 5,
+    fact: "Fourier développa les séries qui portent son nom pour résoudre cette équation. Elle décrit la diffusion thermique mais aussi la diffusion de particules (équation de diffusion) et les prix d'options en finance (Black-Scholes)."
+  },
+  {
+    latex: "V = \\frac{4}{3}\\pi r^3",
+    name: "Volume d'une sphère",
+    domain: "Géométrie",
+    author: "Archimède",
+    era: "Antiquité",
+    type: "Formule géométrique",
+    field: "Mathématiques",
+    complexity: 1,
+    fact: "Archimède démontra cette formule par une méthode d'exhaustion (ancêtre du calcul intégral). Il était si fier de ce résultat qu'il voulut une sphère inscrite dans un cylindre gravée sur sa tombe."
   },
 ];
 
-// Ordinal order for "era" arrows
-const ERA_ORDER = [
-  "Antiquité", "IXe siècle", "XVIIe siècle", "XVIIIe siècle",
-  "XIXe siècle", "XXe siècle", "XXIe siècle"
+// ═══════════════════════════════════════════════════════
+// CATEGORIES & ORDINALS
+// ═══════════════════════════════════════════════════════
+const CATS = [
+  { key:"domain",     label:"Domaine",      icon:"📐" },
+  { key:"author",     label:"Auteur",        icon:"🧑‍🔬" },
+  { key:"era",        label:"Époque",        icon:"🕰️",  ordinal:true },
+  { key:"field",      label:"Matière",       icon:"🔭" },
+  { key:"type",       label:"Type",          icon:"🏷️" },
+  { key:"complexity", label:"Complexité",    icon:"⚡", ordinal:true },
 ];
 
-function eraArrow(guessEra, targetEra) {
-  const gi = ERA_ORDER.indexOf(guessEra);
-  const ti = ERA_ORDER.indexOf(targetEra);
+const ERA_ORDER = ["Antiquité","IXe siècle","XVIIe siècle","XVIIIe siècle","XIXe siècle","XXe siècle","XXIe siècle"];
+const COMPLEXITY_LABELS = {1:"★ Triviale",2:"★★ Lycée",3:"★★★ Prépa",4:"★★★★ Master",5:"★★★★★ Recherche"};
+
+function ordinalArrow(guessVal, targetVal, order) {
+  const gi = typeof guessVal === "number"
+    ? guessVal
+    : order.indexOf(guessVal);
+  const ti = typeof targetVal === "number"
+    ? targetVal
+    : order.indexOf(targetVal);
   if (gi === -1 || ti === -1 || gi === ti) return "";
-  return gi < ti ? " ↑" : " ↓";
+  return gi < ti ? "↑" : "↓";
 }
 
-// Categories to display (keys + labels)
-const CATS = [
-  { key: "domain",  label: "Domaine",      icon: "📐" },
-  { key: "author",  label: "Auteur",        icon: "🧑‍🔬" },
-  { key: "era",     label: "Époque",        icon: "🕰️" },
-  { key: "type",    label: "Type",          icon: "🏷️" },
-  { key: "field",   label: "Matière",       icon: "🔭" },
-];
+function catDisplay(formula, key) {
+  if (key === "complexity") return COMPLEXITY_LABELS[formula.complexity] || formula.complexity;
+  return formula[key];
+}
 
-// ============================================================
+// ═══════════════════════════════════════════════════════
 // STATE
-// ============================================================
-let state = {
+// ═══════════════════════════════════════════════════════
+let STATE = {
   target: null,
   guesses: [],
-  maxGuesses: 6,
+  maxGuesses: 7,
   revealedCats: new Set(),
   gameOver: false,
   won: false,
-  filterText: "",
-  stats: { wins: 0, played: 0, streak: 0 },
+  filter: "",
+  roundScore: 0,
+  stats: { wins:0, played:0, streak:0, totalScore:0 },
 };
 
-function init() {
-  loadStats();
-  pickFormula();
-  render();
-}
-
-function pickFormula() {
-  // For demo: pick daily based on date seed
-  const dayIndex = Math.floor(Date.now() / 86400000) % FORMULAS.length;
-  state.target = FORMULAS[dayIndex];
-  state.guesses = [];
-  state.revealedCats = new Set();
-  state.gameOver = false;
-  state.won = false;
-  state.filterText = "";
-}
-
+// ═══════════════════════════════════════════════════════
+// PERSISTENCE
+// ═══════════════════════════════════════════════════════
 function loadStats() {
   try {
-    const s = JSON.parse(localStorage.getItem("formuldle_stats") || "{}");
-    state.stats = { wins: s.wins || 0, played: s.played || 0, streak: s.streak || 0 };
+    const s = JSON.parse(localStorage.getItem("formuldle_v2") || "{}");
+    STATE.stats = {
+      wins: s.wins||0, played: s.played||0,
+      streak: s.streak||0, totalScore: s.totalScore||0
+    };
   } catch(_) {}
 }
-
 function saveStats() {
-  localStorage.setItem("formuldle_stats", JSON.stringify(state.stats));
+  localStorage.setItem("formuldle_v2", JSON.stringify(STATE.stats));
 }
 
-// ============================================================
+// ═══════════════════════════════════════════════════════
+// PICK FORMULA  (daily seed)
+// ═══════════════════════════════════════════════════════
+function pickFormula() {
+  const seed = Math.floor(Date.now() / 86400000);
+  STATE.target = FORMULAS[seed % FORMULAS.length];
+  STATE.guesses = [];
+  STATE.revealedCats = new Set();
+  STATE.gameOver = false;
+  STATE.won = false;
+  STATE.filter = "";
+  STATE.roundScore = 0;
+}
+
+// ═══════════════════════════════════════════════════════
 // GAME LOGIC
-// ============================================================
-function makeGuess(formulaIndex) {
-  if (state.gameOver) return;
-  const guess = FORMULAS[formulaIndex];
+// ═══════════════════════════════════════════════════════
+function catStatus(guess, key) {
+  const gv = key === "complexity" ? guess.complexity : guess[key];
+  const tv = key === "complexity" ? STATE.target.complexity : STATE.target[key];
+  if (gv === tv) return "correct";
+  if (key === "complexity" || key === "era") return "wrong"; // arrows handle nearness
+  // partial: shared meaningful word
+  const gw = String(gv).toLowerCase().split(/[\s\/]+/);
+  const tw = String(tv).toLowerCase().split(/[\s\/]+/);
+  if (gw.some(w => tw.includes(w) && w.length > 3)) return "partial";
+  return "wrong";
+}
 
-  if (state.guesses.find(g => g.formula === guess.formula)) return;
+function computeScore(guessCount, hintsUsed) {
+  const base = 1000;
+  const guessPenalty = (guessCount - 1) * 120;
+  const hintPenalty  = hintsUsed * 180;
+  return Math.max(50, base - guessPenalty - hintPenalty);
+}
 
-  state.guesses.push(guess);
+function makeGuess(idx) {
+  if (STATE.gameOver) return;
+  const guess = FORMULAS[idx];
+  if (STATE.guesses.find(g => g === guess)) return;
+  STATE.guesses.push(guess);
 
-  if (guess.formula === state.target.formula) {
-    state.gameOver = true;
-    state.won = true;
-    state.stats.wins++;
-    state.stats.played++;
-    state.stats.streak++;
+  if (guess === STATE.target) {
+    STATE.gameOver = true; STATE.won = true;
+    STATE.roundScore = computeScore(STATE.guesses.length, STATE.revealedCats.size);
+    STATE.stats.wins++;
+    STATE.stats.played++;
+    STATE.stats.streak++;
+    STATE.stats.totalScore += STATE.roundScore;
     saveStats();
-  } else if (state.guesses.length >= state.maxGuesses) {
-    state.gameOver = true;
-    state.stats.played++;
-    state.stats.streak = 0;
+    showToast("+" + STATE.roundScore + " pts 🎉");
+  } else if (STATE.guesses.length >= STATE.maxGuesses) {
+    STATE.gameOver = true;
+    STATE.stats.played++;
+    STATE.stats.streak = 0;
     saveStats();
   }
-
   render();
 }
 
 function revealCat(key) {
-  if (state.gameOver) return;
-  if (state.revealedCats.has(key)) return;
-  // Cost: costs 1 attempt to reveal a hint
-  if (state.guesses.length + state.revealedCats.size >= state.maxGuesses - 1) return;
-  state.revealedCats.add(key);
+  if (STATE.gameOver || STATE.revealedCats.has(key)) return;
+  if (STATE.guesses.length + STATE.revealedCats.size >= STATE.maxGuesses - 1) {
+    showToast("Plus assez de tentatives pour révéler !");
+    return;
+  }
+  STATE.revealedCats.add(key);
+  showToast("Indice révélé — −180 pts");
   render();
-}
-
-function catStatus(guess, key) {
-  if (guess[key] === state.target[key]) return "correct";
-  // Partial: share a word
-  const gWords = guess[key].toLowerCase().split(/\s+/);
-  const tWords = state.target[key].toLowerCase().split(/\s+/);
-  if (gWords.some(w => tWords.includes(w) && w.length > 3)) return "partial";
-  return "wrong";
-}
-
-// ============================================================
-// RENDER
-// ============================================================
-function render() {
-  const area = document.getElementById("game-area");
-
-  document.getElementById("streak").textContent = state.stats.streak;
-  document.getElementById("wins").textContent = state.stats.wins;
-  document.getElementById("played").textContent = state.stats.played;
-
-  let html = "";
-
-  // How to play
-  html += `
-  <div class="how-to">
-    <h3>Comment jouer</h3>
-    Choisissez une formule dans la liste. Pour chaque tentative, les 5 catégories s'affichent avec leur valeur.
-    Vous pouvez aussi <strong>cliquer sur une catégorie</strong> pour révéler un indice (coûte une tentative). Pour l'époque, une flèche ↑↓ indique si la cible est plus récente ou plus ancienne.
-    <div class="legend">
-      <div class="legend-item"><div class="legend-dot" style="background:rgba(76,175,125,0.5);border:1px solid var(--green)"></div> Correct</div>
-      <div class="legend-item"><div class="legend-dot" style="background:rgba(212,168,67,0.5);border:1px solid var(--yellow)"></div> Proche</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--surface2); border:1px solid var(--border)"></div> Faux</div>
-    </div>
-  </div>`;
-
-  // Formula display
-  html += `
-  <div class="formula-display">
-    <div class="formula-label">Formule à deviner</div>
-    <div class="formula-text" id="formula-display-text">?</div>
-    <div class="attempts-left">
-      Tentatives restantes : ${state.maxGuesses - state.guesses.length}
-      <span class="attempt-dots">
-        ${Array.from({length: state.maxGuesses}, (_, i) =>
-          `<span class="dot ${i < state.guesses.length ? 'used' : ''}"></span>`
-        ).join("")}
-      </span>
-    </div>
-  </div>`;
-
-  // Categories
-  html += `<div class="categories-title">Catégories — cliquez pour révéler un indice</div>`;
-  html += `<div class="categories-grid">`;
-  for (const cat of CATS) {
-    const revealed = state.revealedCats.has(cat.key) || state.gameOver;
-    const canReveal = !revealed && !state.gameOver &&
-      (state.guesses.length + state.revealedCats.size < state.maxGuesses - 1);
-
-    html += `
-    <div class="category-card ${revealed ? 'revealed' : ''}"
-         onclick="${revealed || !canReveal ? '' : `revealCat('${cat.key}')`}"
-         style="${!revealed && canReveal ? 'cursor:pointer' : 'cursor:default'}">
-      <div class="cat-name">${cat.label}</div>
-      <div class="cat-value ${revealed ? '' : 'hidden'}">${revealed ? state.target[cat.key] : "???"}</div>
-      <div class="cat-icon">${cat.icon}</div>
-      ${!revealed && canReveal ? `<div class="reveal-hint">Cliquer pour révéler</div>` : ""}
-    </div>`;
-  }
-  html += `</div>`;
-
-  // Game over panel
-  if (state.gameOver) {
-    if (state.won) {
-      html += `
-      <div class="result-panel win">
-        <div class="result-emoji">🎉</div>
-        <div class="result-title">Bravo !</div>
-        <div>Trouvé en <strong>${state.guesses.length}</strong> tentative${state.guesses.length > 1 ? "s" : ""}</div>
-        <div class="result-formula">${state.target.formula}</div>
-        <div class="result-name">${state.target.name}</div>
-        <div class="result-fact">${state.target.fact}</div>
-        <button class="btn-primary" onclick="newGame()">Nouvelle partie →</button>
-      </div>`;
-    } else {
-      html += `
-      <div class="result-panel lose">
-        <div class="result-emoji">📚</div>
-        <div class="result-title">Pas cette fois…</div>
-        <div>La formule était :</div>
-        <div class="result-formula">${state.target.formula}</div>
-        <div class="result-name">${state.target.name}</div>
-        <div class="result-fact">${state.target.fact}</div>
-        <button class="btn-primary" onclick="newGame()">Réessayer →</button>
-      </div>`;
-    }
-  }
-
-  // History of guesses
-  if (state.guesses.length > 0) {
-    html += `<div class="history-section">
-      <div class="guess-label">Tentatives précédentes</div>`;
-    for (const g of state.guesses) {
-      html += `<div class="history-item">
-        <div class="history-header">
-          <div class="history-formula">${g.formula}</div>
-          <div class="history-name">${g.name}</div>
-        </div>
-        <div class="history-cats">`;
-      for (const cat of CATS) {
-        const st = catStatus(g, cat.key);
-        const arrow = cat.key === "era" && st !== "correct"
-          ? `<span class="hcat-arrow">${eraArrow(g[cat.key], state.target[cat.key])}</span>`
-          : "";
-        html += `<div class="hcat ${st}">
-          <div class="hcat-label">${cat.icon} ${cat.label}</div>
-          <div class="hcat-value">${g[cat.key]}${arrow}</div>
-        </div>`;
-      }
-      html += `</div></div>`;
-    }
-    html += `</div>`;
-  }
-
-  // Guess options (only if not game over)
-  if (!state.gameOver) {
-    const guessedFormulas = new Set(state.guesses.map(g => g.formula));
-    const filtered = FORMULAS.filter(f =>
-      !guessedFormulas.has(f.formula) &&
-      (f.name.toLowerCase().includes(state.filterText.toLowerCase()) ||
-       f.formula.toLowerCase().includes(state.filterText.toLowerCase()) ||
-       f.author.toLowerCase().includes(state.filterText.toLowerCase()))
-    );
-
-    html += `<div class="guess-section">
-      <div class="guess-label">Choisissez une formule</div>
-      <div class="search-wrap">
-        <input class="search-input" type="text" placeholder="Filtrer par nom, formule, auteur…"
-          value="${state.filterText}"
-          oninput="filterGuesses(this.value)" id="search-field">
-      </div>
-      <div class="guess-options">`;
-
-    for (const f of filtered) {
-      const idx = FORMULAS.indexOf(f);
-      html += `
-        <button class="guess-btn" onclick="makeGuess(${idx})">
-          <div class="formula-preview">${f.formula}</div>
-          <div class="formula-name">${f.name}</div>
-        </button>`;
-    }
-
-    if (filtered.length === 0) {
-      html += `<div style="color:var(--chalk-dim);padding:12px;font-style:italic">Aucune formule trouvée.</div>`;
-    }
-
-    html += `</div></div>`;
-  }
-
-  area.innerHTML = html;
-}
-
-function filterGuesses(val) {
-  state.filterText = val;
-  // Re-render just the guess list
-  render();
-  // Keep focus on search
-  setTimeout(() => {
-    const f = document.getElementById("search-field");
-    if (f) { f.focus(); f.setSelectionRange(val.length, val.length); }
-  }, 0);
 }
 
 function newGame() {
-  // Pick a random formula different from current
-  const current = state.target;
+  const cur = STATE.target;
   let pick;
   do { pick = FORMULAS[Math.floor(Math.random() * FORMULAS.length)]; }
-  while (pick.formula === current.formula);
-  state.target = pick;
-  state.guesses = [];
-  state.revealedCats = new Set();
-  state.gameOver = false;
-  state.won = false;
-  state.filterText = "";
+  while (pick === cur);
+  STATE.target = pick;
+  STATE.guesses = [];
+  STATE.revealedCats = new Set();
+  STATE.gameOver = false;
+  STATE.won = false;
+  STATE.filter = "";
+  STATE.roundScore = 0;
   render();
 }
 
-init();
+// ═══════════════════════════════════════════════════════
+// SHARE
+// ═══════════════════════════════════════════════════════
+function buildShareGrid() {
+  const icons = { correct:"🟩", partial:"🟨", wrong:"🟥" };
+  return STATE.guesses.map(g => {
+    return CATS.map(c => icons[catStatus(g, c.key)]).join("");
+  }).join("\n");
+}
+
+function copyShare() {
+  const grid = buildShareGrid();
+  const text = `Formuldle — ${STATE.target.name}\n${STATE.guesses.length}/${STATE.maxGuesses} tentatives\n\n${grid}`;
+  navigator.clipboard.writeText(text).then(() => showToast("Copié dans le presse-papiers !"));
+}
+
+// ═══════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════
+function tex(latex) {
+  try {
+    return katex.renderToString(latex, { throwOnError:false, displayMode:false });
+  } catch(_) { return latex; }
+}
+
+function render() {
+  const area = document.getElementById("game-area");
+
+  document.getElementById("stat-streak").textContent = STATE.stats.streak;
+  document.getElementById("stat-wins").textContent   = STATE.stats.wins;
+  document.getElementById("stat-played").textContent = STATE.stats.played;
+  document.getElementById("stat-score").textContent  = STATE.stats.totalScore;
+
+  const remainAttempts = STATE.maxGuesses - STATE.guesses.length;
+  let h = "";
+
+  /* ── How to play ── */
+  h += `<div class="how-to">
+    <h3>Comment jouer</h3>
+    Choisissez une formule dans la liste. Chaque tentative révèle les 6 catégories en
+    <span style="color:var(--green)">vert</span> (correct),
+    <span style="color:var(--yellow)">jaune</span> (proche) ou
+    <span style="color:var(--red)">rouge</span> (faux).
+    Pour l'<b>Époque</b> et la <b>Complexité</b>, une flèche ↑↓ indique si la cible est plus haute ou plus basse.
+    Cliquez une catégorie pour révéler un indice (coûte −180 pts &amp; 1 tentative).
+    <div class="legend">
+      <div class="legend-item"><div class="ldot" style="background:var(--green-bg);border:1px solid var(--green)"></div>Correct</div>
+      <div class="legend-item"><div class="ldot" style="background:var(--yellow-bg);border:1px solid var(--yellow)"></div>Proche</div>
+      <div class="legend-item"><div class="ldot" style="background:var(--red-bg);border:1px solid var(--red)"></div>Faux</div>
+    </div>
+  </div>`;
+
+  /* ── Formula card ── */
+  const dotHtml = Array.from({length: STATE.maxGuesses}, (_, i) => {
+    let cls = "";
+    if (i < STATE.guesses.length) {
+      cls = (STATE.guesses[i] === STATE.target) ? "used-ok" : "used-bad";
+    } else {
+      cls = "";
+    }
+    return `<span class="adot ${cls}"></span>`;
+  }).join("");
+
+  h += `<div class="formula-card">
+    <div class="formula-card-label">Formule à deviner</div>
+    <div class="formula-display">
+      ${STATE.gameOver
+        ? `<span>${tex(STATE.target.latex)}</span>`
+        : `<span class="formula-question-mark">?</span>`}
+    </div>
+    <div class="attempt-track">${dotHtml}<span class="attempt-count">${remainAttempts} tentative${remainAttempts>1?"s":""} restante${remainAttempts>1?"s":""}</span></div>
+  </div>`;
+
+  /* ── Target category tiles ── */
+  h += `<div class="cats-title">Indices — cliquez pour révéler (coûte 1 tentative &amp; −180 pts)</div>`;
+  h += `<div class="cats-grid">`;
+  for (const cat of CATS) {
+    const isRevealed = STATE.revealedCats.has(cat.key) || STATE.gameOver;
+    const canReveal  = !isRevealed && !STATE.gameOver &&
+      (STATE.guesses.length + STATE.revealedCats.size < STATE.maxGuesses - 1);
+    h += `<div class="cat-tile ${isRevealed?"locked":""}"
+      onclick="${canReveal ? `revealCat('${cat.key}')` : ""}">
+      <div class="cat-tile-name">${cat.label}</div>
+      <div class="cat-tile-val ${isRevealed?"":"masked"}">
+        ${isRevealed ? catDisplay(STATE.target, cat.key) : "???"}
+      </div>
+      <div class="cat-tile-icon">${cat.icon}</div>
+      ${canReveal ? `<div class="cost-badge">-1 essai</div>` : ""}
+    </div>`;
+  }
+  h += `</div>`;
+
+  /* ── Result panel ── */
+  if (STATE.gameOver) {
+    if (STATE.won) {
+      const grid = buildShareGrid();
+      h += `<div class="result-panel win">
+        <div class="result-emoji">🎉</div>
+        <div class="result-title">Bravo !</div>
+        <div style="color:var(--chalk-dim);font-size:.9rem">Trouvé en <b>${STATE.guesses.length}</b> tentative${STATE.guesses.length>1?"s":""}</div>
+        <div class="result-formula-tex">${tex(STATE.target.latex)}</div>
+        <div class="result-name">${STATE.target.name}</div>
+        <div class="result-score">+${STATE.roundScore} pts</div>
+        <div class="result-fact">${STATE.target.fact}</div>
+        <div class="share-grid">${grid}</div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="copyShare()">📋 Partager</button>
+          <button class="btn btn-secondary" onclick="newGame()">Nouvelle partie →</button>
+        </div>
+      </div>`;
+    } else {
+      h += `<div class="result-panel lose">
+        <div class="result-emoji">📚</div>
+        <div class="result-title">Pas cette fois…</div>
+        <div style="color:var(--chalk-dim);font-size:.9rem">La formule était :</div>
+        <div class="result-formula-tex">${tex(STATE.target.latex)}</div>
+        <div class="result-name">${STATE.target.name}</div>
+        <div class="result-fact">${STATE.target.fact}</div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="newGame()">Réessayer →</button>
+        </div>
+      </div>`;
+    }
+  }
+
+  /* ── History ── */
+  if (STATE.guesses.length > 0) {
+    h += `<div class="history-section"><div class="section-label">Tentatives</div>`;
+    for (const g of STATE.guesses) {
+      const isWin = g === STATE.target;
+      h += `<div class="history-item">
+        <div class="history-header">
+          <div class="history-formula-tex">${tex(g.latex)}</div>
+          <div class="history-guess-name">${g.name}</div>
+          <div class="history-score-badge ${isWin?"win":"miss"}">${isWin?"✓ Trouvé":"✗"}</div>
+        </div>
+        <div class="hcats">`;
+      for (const cat of CATS) {
+        const st = catStatus(g, cat.key);
+        let arrowHtml = "";
+        if (cat.ordinal && st !== "correct") {
+          const order = cat.key === "era" ? ERA_ORDER : null;
+          const gv = cat.key === "complexity" ? g.complexity : g[cat.key];
+          const tv = cat.key === "complexity" ? STATE.target.complexity : STATE.target[cat.key];
+          const arr = order ? ordinalArrow(gv, tv, order) : ordinalArrow(gv, tv, null);
+          if (arr) arrowHtml = `<span class="arrow">${arr}</span>`;
+        }
+        h += `<div class="hcat ${st}">
+          <div class="hcat-label">${cat.icon} ${cat.label}</div>
+          <div class="hcat-val">${catDisplay(g, cat.key)} ${arrowHtml}</div>
+        </div>`;
+      }
+      h += `</div></div>`;
+    }
+    h += `</div>`;
+  }
+
+  /* ── Guess selector ── */
+  if (!STATE.gameOver) {
+    const guessed = new Set(STATE.guesses);
+    const filtered = FORMULAS.filter(f => {
+      if (guessed.has(f)) return false;
+      const q = STATE.filter.toLowerCase();
+      return !q ||
+        f.name.toLowerCase().includes(q) ||
+        f.author.toLowerCase().includes(q) ||
+        f.domain.toLowerCase().includes(q) ||
+        f.latex.toLowerCase().includes(q);
+    });
+
+    h += `<div class="guess-section">
+      <div class="section-label">Choisissez une formule (${FORMULAS.length - guessed.size} restantes)</div>
+      <div class="search-wrap">
+        <input class="search-input" id="search-field" type="text"
+          placeholder="Rechercher par nom, auteur, domaine…"
+          value="${STATE.filter.replace(/"/g,'&quot;')}"
+          oninput="onFilter(this.value)">
+      </div>
+      <div class="guess-options">`;
+    for (const f of filtered) {
+      const idx = FORMULAS.indexOf(f);
+      h += `<button class="guess-btn" onclick="makeGuess(${idx})">
+        <div class="guess-btn-tex">${tex(f.latex)}</div>
+        <div class="guess-btn-name">${f.name}</div>
+        <div class="guess-btn-domain">${f.domain}</div>
+      </button>`;
+    }
+    if (filtered.length === 0)
+      h += `<div style="padding:12px;color:var(--chalk-dim);font-style:italic">Aucun résultat.</div>`;
+    h += `</div></div>`;
+  }
+
+  area.innerHTML = h;
+
+  // Restore search focus
+  if (!STATE.gameOver && STATE.filter) {
+    const sf = document.getElementById("search-field");
+    if (sf) { sf.focus(); sf.setSelectionRange(STATE.filter.length, STATE.filter.length); }
+  }
+}
+
+function onFilter(val) {
+  STATE.filter = val;
+  render();
+  const sf = document.getElementById("search-field");
+  if (sf) { sf.focus(); sf.setSelectionRange(val.length, val.length); }
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+loadStats();
+pickFormula();
+render();
 </script>
 </body>
 </html>
