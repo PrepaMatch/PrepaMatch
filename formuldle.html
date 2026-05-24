@@ -9,1226 +9,1409 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <style>
 :root {
-  --bg: #0d0f18;
-  --surface: #161925;
-  --surface2: #1f2335;
-  --surface3: #252a3d;
-  --chalk: #e8e4d9;
-  --chalk-dim: #7a7669;
-  --chalk-mid: #b8b3a6;
-  --green: #3dba77;
-  --green-bg: rgba(61,186,119,0.10);
-  --yellow: #d4a843;
-  --yellow-bg: rgba(212,168,67,0.10);
-  --red: #e05252;
-  --red-bg: rgba(224,82,82,0.10);
-  --blue: #5b9bd5;
-  --blue-bg: rgba(91,155,213,0.10);
-  --border: #252a3d;
-  --border2: #2e3450;
+  --bg:#0c0e1a; --surface:#13161f; --surface2:#191d2c; --surface3:#1e2235;
+  --chalk:#eae6da; --chalk-dim:#6b6759; --chalk-mid:#a8a399;
+  --green:#3dba77; --green-bg:rgba(61,186,119,.13); --green-bd:rgba(61,186,119,.45);
+  --yellow:#d4a843; --yellow-bg:rgba(212,168,67,.13); --yellow-bd:rgba(212,168,67,.45);
+  --red:#e05252; --red-bg:rgba(224,82,82,.13); --red-bd:rgba(224,82,82,.45);
+  --blue:#5b9bd5; --blue-bg:rgba(91,155,213,.10); --blue-bd:rgba(91,155,213,.4);
+  --purple:#9b7fd4; --purple-bg:rgba(155,127,212,.10); --purple-bd:rgba(155,127,212,.4);
+  --orange:#d4763b; --orange-bg:rgba(212,118,59,.10); --orange-bd:rgba(212,118,59,.4);
+  --border:#1e2235; --border2:#272d42;
+  --r:12px; --rs:8px;
+  /* mode accent — overridden per mode */
+  --accent:var(--blue); --accent-bg:var(--blue-bg); --accent-bd:var(--blue-bd);
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--chalk);font-family:'Crimson Pro',Georgia,serif;
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(91,155,213,.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(91,155,213,.018) 1px,transparent 1px);
+  background-size:52px 52px;pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;width:100%;max-width:760px;padding:0 16px 40px}
 
-body {
-  background: var(--bg);
-  color: var(--chalk);
-  font-family: 'Crimson Pro', Georgia, serif;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  overflow-x: hidden;
-}
+/* ══ HEADER ══ */
+header{text-align:center;padding:24px 0 14px;border-bottom:1px solid var(--border2);margin-bottom:16px}
+.logo{font-family:'IM Fell English',serif;font-size:2.4rem;letter-spacing:.05em}
+.logo .acc{color:var(--accent)}
+.tagline{font-style:italic;color:var(--chalk-dim);font-size:.88rem;margin-top:2px}
+.stats-row{display:flex;justify-content:center;gap:5px;margin-top:11px;flex-wrap:wrap}
+.chip{display:flex;align-items:center;gap:4px;background:var(--surface2);border:1px solid var(--border2);
+  border-radius:20px;padding:4px 12px;font-family:'JetBrains Mono',monospace;font-size:.67rem;color:var(--chalk-dim)}
+.chip .v{color:var(--chalk);font-size:.78rem;font-weight:700}
+.chip.pts .v{color:var(--yellow)}
+.chip.str .v{color:#ff8c42}
 
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background-image:
-    linear-gradient(rgba(91,155,213,0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(91,155,213,0.025) 1px, transparent 1px);
-  background-size: 48px 48px;
-  pointer-events: none; z-index: 0;
+/* ══ MODE SELECTOR ══ */
+.mode-selector{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
+.mode-btn{
+  background:var(--surface);border:2px solid var(--border2);
+  border-radius:var(--r);padding:13px 16px;cursor:pointer;
+  transition:all .18s;text-align:left;position:relative;overflow:hidden
 }
+.mode-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.mode-btn.active{border-color:var(--accent)!important;background:var(--accent-bg)!important}
+.mode-btn.math-f  {--accent:var(--blue);--accent-bg:var(--blue-bg)}
+.mode-btn.math-t  {--accent:var(--purple);--accent-bg:var(--purple-bg)}
+.mode-btn.phys-f  {--accent:var(--orange);--accent-bg:var(--orange-bg)}
+.mode-btn.phys-t  {--accent:var(--green);--accent-bg:var(--green-bg)}
+.mode-btn.math-f.active{box-shadow:0 0 20px rgba(91,155,213,.15)}
+.mode-btn.math-t.active{box-shadow:0 0 20px rgba(155,127,212,.15)}
+.mode-btn.phys-f.active{box-shadow:0 0 20px rgba(212,118,59,.15)}
+.mode-btn.phys-t.active{box-shadow:0 0 20px rgba(61,186,119,.15)}
+.mb-icon{font-size:1.5rem;margin-bottom:5px}
+.mb-title{font-family:'IM Fell English',serif;font-size:1.1rem;color:var(--chalk)}
+.mb-sub{font-size:.75rem;color:var(--chalk-dim);margin-top:2px;font-style:italic}
+.mb-count{position:absolute;top:10px;right:12px;font-family:'JetBrains Mono',monospace;
+  font-size:.6rem;color:var(--chalk-dim);background:var(--border2);
+  border-radius:10px;padding:2px 7px}
+.mb-active-dot{position:absolute;top:10px;right:12px;width:8px;height:8px;
+  border-radius:50%;background:var(--accent);display:none}
+.mode-btn.active .mb-active-dot{display:block}
+.mode-btn.active .mb-count{display:none}
 
-.wrapper {
-  position: relative; z-index: 1;
-  width: 100%; max-width: 720px;
-  padding: 0 16px 60px;
-}
+/* ══ PROGRESS ══ */
+.prog-wrap{margin-bottom:14px}
+.prog-bg{height:4px;background:var(--border2);border-radius:2px;overflow:hidden;margin-bottom:6px}
+.prog-fill{height:100%;border-radius:2px;transition:width .4s cubic-bezier(.4,0,.2,1);background:var(--accent)}
+.prog-row{display:flex;justify-content:space-between;align-items:center;
+  font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--chalk-dim)}
+.adots{display:flex;gap:5px}
+.ad{width:8px;height:8px;border-radius:50%;background:var(--border2);transition:all .35s}
+.ad.ok{background:var(--green)}
+.ad.bad{background:var(--red)}
+.ad.next{background:var(--accent);box-shadow:0 0 7px var(--accent)}
 
-/* ── HEADER ── */
-header {
-  text-align: center;
-  padding: 32px 0 18px;
-  border-bottom: 1px solid var(--border2);
-  margin-bottom: 22px;
-}
-.logo {
-  font-family: 'IM Fell English', serif;
-  font-size: 2.8rem;
-  letter-spacing: 0.05em;
-}
-.logo .accent { color: var(--blue); }
-.tagline { font-style: italic; color: var(--chalk-dim); font-size: 0.92rem; margin-top: 3px; }
-.score-bar {
-  display: flex; justify-content: center; gap: 28px;
-  margin-top: 14px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.72rem; color: var(--chalk-dim);
-}
-.score-bar b { color: var(--chalk); font-weight: 700; font-size: 0.85rem; }
-.score-bar .pts { color: var(--yellow); }
+/* ══ FORMULA HERO ══ */
+.hero{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);
+  padding:28px 22px 18px;text-align:center;margin-bottom:14px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:.7}
+.hero-lbl{font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--chalk-dim);margin-bottom:14px}
+.hero-formula{min-height:56px;display:flex;align-items:center;justify-content:center}
+.hero-formula .katex{font-size:1.9em}
+.qmark{font-family:'IM Fell English',serif;font-size:3.2rem;color:var(--border2);
+  animation:breathe 2.5s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:.2;transform:scale(1)}50%{opacity:.6;transform:scale(1.05)}}
+.clue-strip{margin-top:13px;background:var(--surface2);border-radius:var(--rs);
+  padding:9px 13px;text-align:left;font-size:.84rem;line-height:1.55;color:var(--chalk-dim)}
+.clue-line{display:flex;align-items:flex-start;gap:7px;margin-bottom:3px}
+.clue-line:last-child{margin-bottom:0}
+.clue-ico{flex-shrink:0;font-size:.88rem;margin-top:1px}
+.clue-txt{flex:1}
 
-/* ── FORMULA CARD ── */
-.formula-card {
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: 14px;
-  padding: 28px 24px 20px;
-  text-align: center;
-  margin-bottom: 18px;
-  position: relative; overflow: hidden;
-}
-.formula-card::before {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0; height: 3px;
-  background: linear-gradient(90deg, transparent, var(--blue), transparent);
-  opacity: 0.5;
-}
-.formula-card-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--chalk-dim); margin-bottom: 16px;
-}
-.formula-display {
-  font-size: 1.6rem; min-height: 3.8rem;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--chalk);
-}
-.formula-display .katex { font-size: 1.5em; }
-.formula-question-mark {
-  font-family: 'IM Fell English', serif;
-  font-size: 3.2rem; color: var(--border2);
-  animation: pulse 2s ease-in-out infinite;
-}
-@keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:.9} }
+/* ══ CATEGORY TILES ══ */
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.sec-lbl{font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;color:var(--chalk-dim)}
+.sec-sub{font-size:.7rem;color:var(--chalk-dim);font-style:italic}
+.cats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:16px}
+.ct{background:var(--surface);border:1px solid var(--border2);border-radius:var(--rs);
+  padding:11px 13px 8px;position:relative;overflow:hidden;min-height:64px;
+  transition:all .18s;cursor:pointer}
+.ct:not(.locked):hover{border-color:var(--accent);background:var(--surface2);
+  transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.25)}
+.ct.locked{cursor:default}
+.ct-nm{font-family:'JetBrains Mono',monospace;font-size:.53rem;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--chalk-dim);margin-bottom:4px}
+.ct-val{font-size:.88rem;font-weight:600;color:var(--chalk);line-height:1.2}
+.ct-val.masked{color:transparent;background:var(--border2);border-radius:3px;user-select:none}
+.ct-ico{position:absolute;top:8px;right:9px;font-size:.85rem;opacity:.22}
+.ct-cost{position:absolute;bottom:5px;right:7px;background:var(--accent-bg);
+  border:1px solid var(--accent-bd);border-radius:3px;padding:1px 5px;
+  font-family:'JetBrains Mono',monospace;font-size:.49rem;color:var(--accent)}
 
-/* Attempt dots */
-.attempt-track {
-  display: flex; align-items: center; justify-content: center;
-  gap: 6px; margin-top: 14px;
-}
-.adot {
-  width: 9px; height: 9px; border-radius: 50%;
-  background: var(--blue); border: 1px solid transparent;
-  transition: all .3s;
-}
-.adot.used-ok  { background: var(--green); }
-.adot.used-bad { background: var(--red); }
-.adot.used-empty { background: var(--border2); border-color: var(--border2); }
-.attempt-count {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem; color: var(--chalk-dim); margin-left: 8px;
-}
+/* ══ HISTORY ══ */
+.hist-wrap{margin-bottom:14px}
+.h-item{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);
+  margin-bottom:8px;overflow:hidden;animation:slideUp .3s cubic-bezier(.34,1.4,.64,1)}
+@keyframes slideUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.h-hd{display:flex;align-items:center;gap:8px;padding:8px 12px 7px;border-bottom:1px solid var(--border)}
+.h-tex{flex-shrink:0;max-width:200px;overflow:hidden}
+.h-tex .katex{font-size:1em}
+.h-nm{flex:1;font-size:.78rem;font-style:italic;color:var(--chalk-mid);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.h-badge{font-family:'JetBrains Mono',monospace;font-size:.63rem;padding:2px 7px;border-radius:4px;flex-shrink:0}
+.h-badge.win{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd)}
+.h-badge.miss{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd)}
+.hcats{display:grid;grid-template-columns:repeat(6,1fr)}
+.hc{padding:7px 6px;border-right:1px solid var(--border)}
+.hc:last-child{border-right:none}
+.hc.correct{background:var(--green-bg)}
+.hc.partial{background:var(--yellow-bg)}
+.hc.wrong{background:var(--red-bg)}
+.hc-lbl{font-family:'JetBrains Mono',monospace;font-size:.46rem;letter-spacing:.06em;
+  text-transform:uppercase;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hc.correct .hc-lbl{color:var(--green)}
+.hc.partial .hc-lbl{color:var(--yellow)}
+.hc.wrong   .hc-lbl{color:var(--red)}
+.hc-val{font-size:.7rem;line-height:1.2;word-break:break-word}
+.hc.correct .hc-val{color:var(--chalk)}
+.hc.partial .hc-val{color:var(--chalk-mid)}
+.hc.wrong   .hc-val{color:var(--red)}
+.arr{font-weight:800}
 
-/* ── TARGET CATEGORIES (top reveal panel) ── */
-.cats-title {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase;
-  color: var(--chalk-dim); margin-bottom: 10px;
-}
-.cats-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 8px; margin-bottom: 18px;
-}
-.cat-tile {
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: 10px;
-  padding: 12px 14px;
-  cursor: pointer;
-  transition: all .18s;
-  position: relative; overflow: hidden;
-  min-height: 68px;
-}
-.cat-tile:hover:not(.locked) {
-  border-color: var(--blue);
-  background: var(--surface2);
-  transform: translateY(-1px);
-}
-.cat-tile.locked { cursor: default; }
-.cat-tile-name {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--chalk-dim); margin-bottom: 5px;
-}
-.cat-tile-val {
-  font-size: 0.92rem; font-weight: 600; color: var(--chalk);
-  line-height: 1.25;
-}
-.cat-tile-val.masked {
-  color: transparent; background: var(--border2);
-  border-radius: 3px; user-select: none;
-}
-.cat-tile-icon { position: absolute; top: 8px; right: 10px; font-size: 0.95rem; opacity: 0.35; }
-.cat-tile-hint { font-size: 0.65rem; color: var(--blue); margin-top: 3px; opacity: .8; }
-.cost-badge {
-  position: absolute; bottom: 6px; right: 8px;
-  background: var(--blue-bg); border: 1px solid var(--blue);
-  border-radius: 4px; padding: 1px 5px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.55rem; color: var(--blue);
-}
+/* ══ RESULT ══ */
+.result{border-radius:var(--r);padding:24px 20px;text-align:center;margin-bottom:14px;
+  animation:fadeUp .4s cubic-bezier(.34,1.2,.64,1)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.result.win{background:var(--green-bg);border:1px solid var(--green-bd)}
+.result.lose{background:var(--red-bg);border:1px solid var(--red-bd)}
+.r-em{font-size:2.6rem;margin-bottom:7px;animation:pop .5s cubic-bezier(.34,1.7,.64,1)}
+@keyframes pop{from{transform:scale(.3)}to{transform:scale(1)}}
+.r-title{font-family:'IM Fell English',serif;font-size:1.7rem;margin-bottom:4px}
+.r-sub{color:var(--chalk-dim);font-size:.86rem;margin-bottom:10px}
+.r-formula{margin:11px 0 3px}
+.r-formula .katex{font-size:1.7em}
+.r-name{font-style:italic;color:var(--chalk-dim);font-size:.9rem;margin-bottom:6px}
+.r-author{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--accent);
+  background:var(--accent-bg);border:1px solid var(--accent-bd);border-radius:5px;
+  display:inline-block;padding:2px 9px;margin-bottom:11px}
+.r-score{font-family:'JetBrains Mono',monospace;font-size:1.35rem;color:var(--yellow);font-weight:700;margin-bottom:12px}
+.r-fact{background:var(--surface2);border-radius:var(--rs);padding:11px 14px;
+  font-size:.86rem;color:var(--chalk-mid);line-height:1.6;font-style:italic;
+  margin-bottom:14px;text-align:left}
+.share-grid{font-family:'JetBrains Mono',monospace;font-size:1.2rem;
+  background:var(--surface2);border-radius:var(--rs);padding:10px 14px;
+  margin-bottom:13px;line-height:1.8;border:1px solid var(--border2)}
+.btn-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.btn{border:none;border-radius:var(--rs);padding:10px 20px;font-family:'Crimson Pro',serif;
+  font-size:1rem;cursor:pointer;transition:all .15s;font-weight:600}
+.btn-p{background:var(--accent);color:#fff}
+.btn-s{background:var(--surface3);color:var(--chalk);border:1px solid var(--border2)}
+.btn:hover{opacity:.83;transform:translateY(-1px)}
 
-/* ── HISTORY ── */
-.history-section { margin-bottom: 18px; }
-.section-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase;
-  color: var(--chalk-dim); margin-bottom: 8px;
-}
-.history-item {
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: 10px;
-  margin-bottom: 10px;
-  overflow: hidden;
-  animation: slideIn .28s ease;
-}
-@keyframes slideIn { from{opacity:0;transform:translateY(-5px)} to{opacity:1;transform:translateY(0)} }
+/* ══ GUESS SELECTOR ══ */
+.guess-wrap{margin-bottom:0}
+.search-box{position:relative;margin-bottom:7px}
+.search-box input{width:100%;background:var(--surface);border:1px solid var(--border2);
+  border-radius:var(--rs);padding:11px 14px 11px 38px;color:var(--chalk);
+  font-family:'Crimson Pro',serif;font-size:1rem;outline:none;transition:border-color .15s}
+.search-box input:focus{border-color:var(--accent)}
+.search-box input::placeholder{color:var(--chalk-dim)}
+.s-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--chalk-dim);font-size:.86rem;pointer-events:none}
+.glist{display:flex;flex-direction:column;gap:4px;max-height:290px;overflow-y:auto;padding-right:3px}
+.glist::-webkit-scrollbar{width:3px}
+.glist::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.gb{background:var(--surface);border:1px solid var(--border2);border-radius:var(--rs);
+  padding:9px 12px;color:var(--chalk);text-align:left;cursor:pointer;
+  display:grid;grid-template-columns:130px 1fr auto;align-items:center;gap:8px;
+  transition:all .13s}
+.gb:hover{border-color:var(--accent);background:var(--surface2);transform:translateX(2px)}
+.gb-tex .katex{font-size:.95em}
+.gb-nm{font-size:.8rem;color:var(--chalk-mid);font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gb-tag{font-family:'JetBrains Mono',monospace;font-size:.54rem;color:var(--accent);
+  background:var(--accent-bg);border:1px solid var(--accent-bd);border-radius:3px;
+  padding:2px 5px;white-space:nowrap}
 
-.history-header {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 14px 7px;
-  border-bottom: 1px solid var(--border);
-}
-.history-formula-tex {
-  font-size: 1.0rem;
-  flex-shrink: 0;
-  max-width: 180px;
-  overflow: hidden;
-}
-.history-formula-tex .katex { font-size: 1.1em; }
-.history-guess-name {
-  flex: 1; font-size: 0.8rem; font-style: italic; color: var(--chalk-dim);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.history-score-badge {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem; padding: 2px 7px;
-  border-radius: 5px; flex-shrink: 0;
-}
-.history-score-badge.win  { background: var(--green-bg); color: var(--green); border: 1px solid var(--green); }
-.history-score-badge.miss { background: var(--red-bg);   color: var(--red);   border: 1px solid var(--red); }
+/* ══ HOW TO ══ */
+.how-wrap{margin-bottom:14px}
+.how-btn{width:100%;background:var(--surface);border:1px solid var(--border2);
+  border-radius:var(--rs);padding:9px 14px;color:var(--chalk-mid);
+  font-family:'JetBrains Mono',monospace;font-size:.63rem;letter-spacing:.1em;text-transform:uppercase;
+  cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center;transition:all .15s}
+.how-btn:hover{border-color:var(--accent)}
+.how-btn .chev{transition:transform .25s}
+.how-btn.open .chev{transform:rotate(180deg)}
+.how-body{background:var(--surface);border:1px solid var(--border2);border-top:none;
+  border-radius:0 0 var(--rs) var(--rs);padding:12px 14px;font-size:.86rem;
+  color:var(--chalk-dim);line-height:1.65;display:none}
+.how-body.open{display:block}
+.leg{display:flex;gap:12px;margin-top:7px;flex-wrap:wrap}
+.leg-i{display:flex;align-items:center;gap:5px;font-size:.77rem}
+.ldot{width:10px;height:10px;border-radius:2px}
 
-.hcats {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 0;
-}
-.hcat {
-  padding: 7px 8px;
-  border-right: 1px solid var(--border);
-}
-.hcat:last-child { border-right: none; }
-.hcat.correct { background: var(--green-bg); }
-.hcat.partial  { background: var(--yellow-bg); }
-.hcat.wrong    { background: var(--red-bg); }
+/* ══ TOAST ══ */
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-70px);
+  background:var(--surface3);color:var(--chalk);border:1px solid var(--border2);
+  font-family:'JetBrains Mono',monospace;font-size:.74rem;padding:8px 16px;
+  border-radius:18px;z-index:999;transition:transform .35s cubic-bezier(.34,1.56,.64,1),opacity .35s;
+  opacity:0;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.good{border-color:var(--green-bd);color:var(--green)}
+.toast.warn{border-color:var(--yellow-bd);color:var(--yellow)}
 
-.hcat-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.5rem; letter-spacing: 0.08em; text-transform: uppercase;
-  margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.hcat.correct .hcat-label { color: var(--green); }
-.hcat.partial .hcat-label { color: var(--yellow); }
-.hcat.wrong   .hcat-label { color: var(--red); }
-
-.hcat-val {
-  font-size: 0.72rem; line-height: 1.2;
-  word-break: break-word;
-}
-.hcat.correct .hcat-val { color: var(--chalk); }
-.hcat.partial .hcat-val { color: var(--chalk-mid); }
-.hcat.wrong   .hcat-val { color: var(--red); }
-
-.arrow { font-weight: 700; }
-
-/* ── RESULT PANEL ── */
-.result-panel {
-  border-radius: 14px; padding: 28px 24px;
-  text-align: center; margin-bottom: 18px;
-  animation: fadeUp .4s ease;
-}
-@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-.result-panel.win  { background: var(--green-bg); border: 1px solid var(--green); }
-.result-panel.lose { background: var(--red-bg);   border: 1px solid var(--red); }
-.result-emoji { font-size: 2.8rem; margin-bottom: 10px; }
-.result-title { font-family: 'IM Fell English', serif; font-size: 1.7rem; margin-bottom: 6px; }
-.result-formula-tex { margin: 14px 0 4px; }
-.result-formula-tex .katex { font-size: 1.8em; }
-.result-name { font-style: italic; color: var(--chalk-dim); font-size: 0.95rem; margin-bottom: 14px; }
-.result-score {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 1.4rem; color: var(--yellow); margin-bottom: 14px;
-}
-.result-fact {
-  background: var(--surface2); border-radius: 8px;
-  padding: 12px 16px; font-size: 0.88rem; color: var(--chalk-dim);
-  line-height: 1.55; font-style: italic; margin-bottom: 20px;
-  text-align: left;
-}
-.btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-.btn { border: none; border-radius: 8px; padding: 11px 24px; font-family: 'Crimson Pro', serif; font-size: 1rem; cursor: pointer; transition: opacity .15s; }
-.btn-primary { background: var(--blue); color: #fff; }
-.btn-secondary { background: var(--surface3); color: var(--chalk); border: 1px solid var(--border2); }
-.btn:hover { opacity: .82; }
-
-/* ── GUESS AREA ── */
-.guess-section { margin-bottom: 18px; }
-.search-wrap { position: relative; margin-bottom: 9px; }
-.search-input {
-  width: 100%; background: var(--surface);
-  border: 1px solid var(--border2); border-radius: 8px;
-  padding: 11px 14px; color: var(--chalk);
-  font-family: 'Crimson Pro', serif; font-size: 1rem;
-  outline: none; transition: border-color .15s;
-}
-.search-input:focus { border-color: var(--blue); }
-.search-input::placeholder { color: var(--chalk-dim); }
-
-.guess-options {
-  display: flex; flex-direction: column; gap: 6px;
-  max-height: 300px; overflow-y: auto; padding-right: 4px;
-}
-.guess-options::-webkit-scrollbar { width: 4px; }
-.guess-options::-webkit-scrollbar-track { background: transparent; }
-.guess-options::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-
-.guess-btn {
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: 8px; padding: 10px 14px;
-  color: var(--chalk); text-align: left;
-  cursor: pointer; transition: all .14s;
-  display: flex; align-items: center; gap: 12px;
-}
-.guess-btn:hover { border-color: var(--blue); background: var(--surface2); }
-.guess-btn-tex { min-width: 100px; flex-shrink: 0; font-size: 0.9rem; }
-.guess-btn-tex .katex { font-size: 1.05em; }
-.guess-btn-name { flex: 1; font-size: 0.84rem; color: var(--chalk-dim); font-style: italic; }
-.guess-btn-domain {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.6rem; color: var(--blue); flex-shrink: 0;
-  background: var(--blue-bg); border-radius: 4px; padding: 2px 6px;
-}
-
-/* ── HOW TO PLAY ── */
-.how-to {
-  background: var(--surface); border: 1px solid var(--border2);
-  border-radius: 10px; padding: 14px 18px; margin-bottom: 18px;
-  font-size: 0.87rem; color: var(--chalk-dim); line-height: 1.6;
-}
-.how-to h3 {
-  font-family: 'JetBrains Mono', monospace; font-size: 0.63rem;
-  letter-spacing: 0.15em; text-transform: uppercase;
-  color: var(--chalk-mid); margin-bottom: 6px;
-}
-.legend { display: flex; gap: 14px; margin-top: 7px; flex-wrap: wrap; }
-.legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; }
-.ldot { width: 11px; height: 11px; border-radius: 3px; }
-
-/* ── BONUS TOAST ── */
-.toast {
-  position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-60px);
-  background: var(--yellow); color: #1a1400;
-  font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; font-weight: 700;
-  padding: 10px 20px; border-radius: 8px; z-index: 999;
-  transition: transform .35s cubic-bezier(.34,1.56,.64,1), opacity .35s;
-  opacity: 0; pointer-events: none; white-space: nowrap;
-}
-.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-
-/* ── SHARE GRID ── */
-.share-grid {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 1.2rem; letter-spacing: 0.08em;
-  background: var(--surface2); border-radius: 8px;
-  padding: 10px 14px; margin-bottom: 14px;
-  text-align: center; line-height: 1.7;
-  border: 1px solid var(--border2);
-}
-
-/* responsive */
-@media (max-width: 540px) {
-  .hcats { grid-template-columns: repeat(3, 1fr); }
-  .hcat:nth-child(3) { border-right: none; }
-  .hcat:nth-child(4) { border-top: 1px solid var(--border); }
-  .cats-grid { grid-template-columns: repeat(2, 1fr); }
+@media(max-width:580px){
+  .hcats{grid-template-columns:repeat(3,1fr)}
+  .hc:nth-child(3){border-right:none}
+  .hc:nth-child(4){border-top:1px solid var(--border)}
+  .cats-grid{grid-template-columns:repeat(2,1fr)}
+  .gb{grid-template-columns:90px 1fr}
+  .gb-tag{display:none}
+  .mode-selector{grid-template-columns:1fr 1fr}
 }
 </style>
 </head>
 <body>
-<div class="wrapper">
-
+<div class="wrap">
 <header>
-  <div class="logo">For<span class="accent">mul</span>dle</div>
-  <div class="tagline">Devinez la formule — mathématiques &amp; physique</div>
-  <div class="score-bar">
-    <div>🔥 Série&nbsp;<b id="stat-streak">0</b></div>
-    <div>✅ Victoires&nbsp;<b id="stat-wins">0</b></div>
-    <div>🎮 Parties&nbsp;<b id="stat-played">0</b></div>
-    <div>⭐ Score&nbsp;<b class="pts" id="stat-score">0</b></div>
+  <div class="logo">For<span class="acc">mul</span>dle</div>
+  <div class="tagline">Devinez formules &amp; théorèmes — mathématiques &amp; physique</div>
+  <div class="stats-row">
+    <div class="chip str">🔥 <span class="v" id="s-str">0</span></div>
+    <div class="chip">✅ <span class="v" id="s-win">0</span></div>
+    <div class="chip">🎮 <span class="v" id="s-play">0</span></div>
+    <div class="chip pts">⭐ <span class="v" id="s-pts">0</span> pts</div>
   </div>
 </header>
-
-<div id="game-area"></div>
-
+<div id="area"></div>
 </div>
-
 <div class="toast" id="toast"></div>
 
-
-
 <script>
-// ═══════════════════════════════════════════════════════
-// DATA  —  40 formules
-// ═══════════════════════════════════════════════════════
-// complexity scale (for arrows):
-// 1=triviale, 2=lycée, 3=prépa/licence, 4=master, 5=recherche
+// ══════════════════════════════════════════════════════════════════════
+//  HOW TO ADD FORMULAS
+//  ───────────────────
+//  Chaque formule suit ce schéma exact. Copiez un bloc existant,
+//  modifiez les champs, et ajoutez-le au bon tableau :
+//
+//    MATH_FORMULAS   → formules mathématiques (analyse, algèbre, géom…)
+//    MATH_THEOREMS   → théorèmes mathématiques (avec preuve/résultat)
+//    PHYS_FORMULAS   → formules physiques (méca, EM, thermo, quantique…)
+//    PHYS_THEOREMS   → théorèmes/lois physiques (énoncer un résultat)
+//
+//  Champs obligatoires :
+//    latex      : string  — code KaTeX de la formule
+//    name       : string  — nom complet
+//    author     : string  — auteur(s)
+//    vars       : number  — nombre de symboles/variables distincts
+//    operation  : string  — "Égalité" | "Somme" | "Produit" | "Division" |
+//                           "Dérivée" | "Dérivée partielle" | "Intégrale" |
+//                           "Exponentielle" | "Racine" | "Inégalité" |
+//                           "Logarithme" | "Rotationnel" | "Divergence" |
+//                           "Gradient" | "Limite" | "Équivalence"
+//    constants  : string  — constante notable, ex. "π" ou "Aucune"
+//    domain     : string  — domaine précis
+//    era        : string  — une des clés ERA_ORDER ci-dessous
+//    complexity : number  — 1 (triviale) à 5 (recherche)
+//    fact       : string  — anecdote historique (sans nom ni auteur)
+//    clues      : array   — 3 indices du plus vague au plus précis
+//                           (sans jamais citer le nom ni l'auteur)
+// ══════════════════════════════════════════════════════════════════════
 
-const FORMULAS = [
-  /* ─── PHYSIQUE ─── */
-  {
-    latex: "E = mc^2",
-    name: "Équivalence masse-énergie",
-    domain: "Relativité",
-    author: "Einstein",
-    era: "XXe siècle",
-    type: "Relation fondamentale",
-    field: "Physique",
-    complexity: 2,
-    fact: "Publiée en 1905 dans le cadre de la relativité restreinte, cette formule montre que la masse et l'énergie sont équivalentes. Elle est à la base de la physique nucléaire et des réacteurs à fission."
-  },
-  {
-    latex: "F = ma",
-    name: "2e loi de Newton",
-    domain: "Mécanique classique",
-    author: "Newton",
-    era: "XVIIe siècle",
-    type: "Loi fondamentale",
-    field: "Physique",
-    complexity: 1,
-    fact: "La deuxième loi du mouvement : la résultante des forces appliquées sur un objet est égale au produit de sa masse par son accélération. Fondement de la mécanique classique pendant trois siècles."
-  },
-  {
-    latex: "F = G\\frac{m_1 m_2}{r^2}",
-    name: "Loi de gravitation universelle",
-    domain: "Mécanique céleste",
-    author: "Newton",
-    era: "XVIIe siècle",
-    type: "Loi fondamentale",
-    field: "Physique",
-    complexity: 2,
-    fact: "Newton aurait eu l'idée en observant une pomme tomber. Cette loi décrit l'attraction gravitationnelle entre deux corps massifs et permit de prédire les orbites planétaires avec une précision remarquable."
-  },
-  {
-    latex: "i\\hbar\\frac{\\partial \\psi}{\\partial t} = \\hat{H}\\psi",
-    name: "Équation de Schrödinger",
-    domain: "Mécanique quantique",
-    author: "Schrödinger",
-    era: "XXe siècle",
-    type: "Équation différentielle",
-    field: "Physique",
-    complexity: 5,
-    fact: "L'équation centrale de la mécanique quantique, décrivant l'évolution temporelle de la fonction d'onde ψ. Son interprétation probabiliste fut au cœur d'un célèbre débat entre Einstein et Bohr."
-  },
-  {
-    latex: "S = k_B \\ln \\Omega",
-    name: "Entropie de Boltzmann",
-    domain: "Physique statistique",
-    author: "Boltzmann",
-    era: "XIXe siècle",
-    type: "Définition statistique",
-    field: "Physique",
-    complexity: 4,
-    fact: "Cette formule est gravée sur la tombe de Boltzmann à Vienne. Elle relie l'entropie macroscopique au nombre Ω de micro-états compatibles, fondant la physique statistique."
-  },
-  {
-    latex: "PV = nRT",
-    name: "Loi des gaz parfaits",
-    domain: "Thermodynamique",
-    author: "Clapeyron",
-    era: "XIXe siècle",
-    type: "Équation d'état",
-    field: "Physique",
-    complexity: 2,
-    fact: "Synthèse des lois de Boyle, Charles et Gay-Lussac, formulée par Clapeyron en 1834. Elle décrit le comportement idéal des gaz à basse pression et haute température."
-  },
-  {
-    latex: "\\nabla \\times \\mathbf{B} = \\mu_0 \\mathbf{J} + \\mu_0\\varepsilon_0\\frac{\\partial \\mathbf{E}}{\\partial t}",
-    name: "Équation de Maxwell-Ampère",
-    domain: "Électromagnétisme",
-    author: "Maxwell",
-    era: "XIXe siècle",
-    type: "Équation de champ",
-    field: "Physique",
-    complexity: 5,
-    fact: "Le terme ε₀∂E/∂t, ajouté par Maxwell au travail d'Ampère, est le courant de déplacement. Il permit de prédire l'existence des ondes électromagnétiques se propageant à la vitesse de la lumière."
-  },
-  {
-    latex: "\\nabla \\cdot \\mathbf{E} = \\frac{\\rho}{\\varepsilon_0}",
-    name: "Loi de Gauss (électrostatique)",
-    domain: "Électromagnétisme",
-    author: "Gauss",
-    era: "XIXe siècle",
-    type: "Équation de champ",
-    field: "Physique",
-    complexity: 4,
-    fact: "La première des équations de Maxwell relie la divergence du champ électrique à la densité volumique de charges. Elle est l'expression différentielle du théorème de Gauss."
-  },
-  {
-    latex: "\\Delta x \\cdot \\Delta p \\geq \\frac{\\hbar}{2}",
-    name: "Principe d'incertitude de Heisenberg",
-    domain: "Mécanique quantique",
-    author: "Heisenberg",
-    era: "XXe siècle",
-    type: "Inégalité fondamentale",
-    field: "Physique",
-    complexity: 4,
-    fact: "Il est impossible de connaître simultanément et avec une précision arbitraire la position et la quantité de mouvement d'une particule. Ce n'est pas une limite instrumentale, mais une propriété fondamentale de la nature."
-  },
-  {
-    latex: "E^2 = (pc)^2 + (m_0 c^2)^2",
-    name: "Relation énergie-impulsion",
-    domain: "Relativité",
-    author: "Einstein",
-    era: "XXe siècle",
-    type: "Relation fondamentale",
-    field: "Physique",
-    complexity: 4,
-    fact: "Généralisation relativiste de E=mc². Pour un photon (m₀=0), elle donne E=pc. Elle unifie masse, énergie et impulsion dans le cadre de la relativité restreinte."
-  },
-  {
-    latex: "F = q(\\mathbf{E} + \\mathbf{v} \\times \\mathbf{B})",
-    name: "Force de Lorentz",
-    domain: "Électromagnétisme",
-    author: "Lorentz",
-    era: "XIXe siècle",
-    type: "Loi fondamentale",
-    field: "Physique",
-    complexity: 3,
-    fact: "La force subie par une charge q dans un champ électromagnétique. Le terme v×B est la force magnétique, toujours perpendiculaire à la vitesse : elle ne travaille jamais."
-  },
-  {
-    latex: "\\lambda = \\frac{h}{p}",
-    name: "Relation de De Broglie",
-    domain: "Mécanique quantique",
-    author: "De Broglie",
-    era: "XXe siècle",
-    type: "Dualité onde-corpuscule",
-    field: "Physique",
-    complexity: 3,
-    fact: "De Broglie proposa dans sa thèse de 1924 que toute particule possède une longueur d'onde λ=h/p. Confirmée expérimentalement par Davisson et Germer en 1927, cette idée valut à De Broglie le prix Nobel."
-  },
-
-  /* ─── MATHÉMATIQUES ─── */
-  {
-    latex: "a^2 + b^2 = c^2",
-    name: "Théorème de Pythagore",
-    domain: "Géométrie euclidienne",
-    author: "Pythagore",
-    era: "Antiquité",
-    type: "Théorème géométrique",
-    field: "Mathématiques",
-    complexity: 1,
-    fact: "L'un des théorèmes les plus anciens, connu des Babyloniens 1000 ans avant Pythagore. Il caractérise les triangles rectangles et est à la base de toute la trigonométrie."
-  },
-  {
-    latex: "e^{i\\pi} + 1 = 0",
-    name: "Identité d'Euler",
-    domain: "Analyse complexe",
-    author: "Euler",
-    era: "XVIIIe siècle",
-    type: "Identité remarquable",
-    field: "Mathématiques",
-    complexity: 3,
-    fact: "Souvent élue « plus belle formule des mathématiques » : elle relie les cinq constantes fondamentales e, i, π, 1 et 0 dans une seule équation d'une simplicité déconcertante."
-  },
-  {
-    latex: "e^{i\\theta} = \\cos\\theta + i\\sin\\theta",
-    name: "Formule d'Euler",
-    domain: "Analyse complexe",
-    author: "Euler",
-    era: "XVIIIe siècle",
-    type: "Formule fondamentale",
-    field: "Mathématiques",
-    complexity: 3,
-    fact: "Fondement de toute l'analyse de Fourier et du traitement du signal. Elle permet de représenter les oscillations et rotations de façon unifiée via les exponentielles complexes."
-  },
-  {
-    latex: "P(A|B) = \\frac{P(B|A)\\,P(A)}{P(B)}",
-    name: "Théorème de Bayes",
-    domain: "Probabilités",
-    author: "Bayes",
-    era: "XVIIIe siècle",
-    type: "Théorème probabiliste",
-    field: "Mathématiques",
-    complexity: 3,
-    fact: "Fondement de l'inférence bayésienne, aujourd'hui omniprésente en IA, médecine diagnostique et finance. Il permet de mettre à jour une croyance a priori à la lumière de nouvelles données."
-  },
-  {
-    latex: "x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}",
-    name: "Formule quadratique",
-    domain: "Algèbre",
-    author: "Al-Khwarizmi",
-    era: "IXe siècle",
-    type: "Formule algébrique",
-    field: "Mathématiques",
-    complexity: 1,
-    fact: "Al-Khwarizmi, père de l'algèbre, développa des méthodes pour résoudre les équations du second degré. Le mot « algèbre » vient du titre de son traité : Al-Kitāb al-mukhtaṣar fī ḥisāb al-jabr."
-  },
-  {
-    latex: "\\sum_{k=0}^{\\infty} x^k = \\frac{1}{1-x}, \\; |x|<1",
-    name: "Série géométrique",
-    domain: "Analyse",
-    author: "Euler",
-    era: "XVIIIe siècle",
-    type: "Série entière",
-    field: "Mathématiques",
-    complexity: 2,
-    fact: "La série géométrique est l'une des premières séries dont la somme a été calculée rigoureusement. Elle est omniprésente en analyse, probabilités et physique (développements limités, fonctions génératrices)."
-  },
-  {
-    latex: "\\iint_D (\\partial_x Q - \\partial_y P)\\,dA = \\oint_{\\partial D} P\\,dx + Q\\,dy",
-    name: "Formule de Green",
-    domain: "Analyse vectorielle",
-    author: "Green",
-    era: "XIXe siècle",
-    type: "Théorème d'intégration",
-    field: "Mathématiques",
-    complexity: 4,
-    fact: "Cas particulier du théorème de Stokes dans le plan. George Green, autodidacte, l'a publié dans un essai de 1828. Elle relie une intégrale de surface à une intégrale curviligne sur son bord."
-  },
-  {
-    latex: "\\oiint_S \\mathbf{F}\\cdot d\\mathbf{S} = \\iiint_V \\nabla \\cdot \\mathbf{F}\\,dV",
-    name: "Théorème de la divergence (Gauss-Ostrogradski)",
-    domain: "Analyse vectorielle",
-    author: "Gauss",
-    era: "XIXe siècle",
-    type: "Théorème d'intégration",
-    field: "Mathématiques",
-    complexity: 4,
-    fact: "Relie le flux d'un champ vectoriel à travers une surface fermée à la divergence dans le volume. Indispensable en électromagnétisme (loi de Gauss) et en mécanique des fluides (équation de continuité)."
-  },
-  {
-    latex: "n! \\sim \\sqrt{2\\pi n}\\left(\\frac{n}{e}\\right)^n",
-    name: "Formule de Stirling",
-    domain: "Analyse",
-    author: "Stirling",
-    era: "XVIIIe siècle",
-    type: "Équivalent asymptotique",
-    field: "Mathématiques",
-    complexity: 3,
-    fact: "Donne un équivalent de n! pour les grands n. Essentielle en combinatoire, physique statistique (calcul de l'entropie) et théorie de l'information. L'erreur relative tend vers 0."
-  },
-  {
-    latex: "\\zeta(s) = \\sum_{n=1}^{\\infty} \\frac{1}{n^s}",
-    name: "Fonction zêta de Riemann",
-    domain: "Théorie des nombres",
-    author: "Riemann",
-    era: "XIXe siècle",
-    type: "Série de Dirichlet",
-    field: "Mathématiques",
-    complexity: 5,
-    fact: "L'hypothèse de Riemann (1859), qui stipule que tous les zéros non triviaux ont partie réelle 1/2, est l'un des problèmes du millénaire. Elle est profondément liée à la distribution des nombres premiers."
-  },
-  {
-    latex: "f(x) = \\sum_{n=-\\infty}^{\\infty} c_n e^{inx}",
-    name: "Série de Fourier",
-    domain: "Analyse harmonique",
-    author: "Fourier",
-    era: "XIXe siècle",
-    type: "Décomposition spectrale",
-    field: "Mathématiques",
-    complexity: 3,
-    fact: "Fourier a développé cette décomposition pour résoudre l'équation de la chaleur. Elle est à la base du traitement du signal, de la musique numérique, de l'imagerie médicale (IRM) et de la JPEG."
-  },
-  {
-    latex: "\\binom{n}{k} = \\frac{n!}{k!(n-k)!}",
-    name: "Coefficient binomial",
-    domain: "Combinatoire",
-    author: "Pascal",
-    era: "XVIIe siècle",
-    type: "Formule combinatoire",
-    field: "Mathématiques",
-    complexity: 2,
-    fact: "Connu bien avant Pascal, notamment par Omar Khayyam et les mathématiciens chinois. Il donne le nombre de façons de choisir k éléments parmi n, et apparaît dans le développement de (a+b)ⁿ."
-  },
-  {
-    latex: "(a+b)^n = \\sum_{k=0}^{n}\\binom{n}{k}a^k b^{n-k}",
-    name: "Théorème binomial de Newton",
-    domain: "Algèbre",
-    author: "Newton",
-    era: "XVIIe siècle",
-    type: "Développement algébrique",
-    field: "Mathématiques",
-    complexity: 2,
-    fact: "Newton a généralisé ce théorème aux exposants réels (voire complexes), obtenant des séries entières. La version entière était connue de Tartaglia et Pascal, mais Newton en fit un outil d'analyse puissant."
-  },
-  {
-    latex: "\\frac{d}{dx}\\int_a^x f(t)\\,dt = f(x)",
-    name: "Théorème fondamental du calcul",
-    domain: "Analyse",
-    author: "Newton / Leibniz",
-    era: "XVIIe siècle",
-    type: "Théorème fondamental",
-    field: "Mathématiques",
-    complexity: 3,
-    fact: "Ce théorème établit le lien entre dérivation et intégration — deux opérations en apparence indépendantes. La querelle de priorité entre Newton et Leibniz est l'une des plus célèbres de l'histoire des maths."
-  },
-  {
-    latex: "\\mathbf{A}\\mathbf{x} = \\lambda \\mathbf{x}",
-    name: "Équation aux valeurs propres",
-    domain: "Algèbre linéaire",
-    author: "Cauchy",
-    era: "XIXe siècle",
-    type: "Équation matricielle",
-    field: "Mathématiques",
-    complexity: 3,
-    fact: "Fondement de la diagonalisation des matrices, de la mécanique quantique (observables = opérateurs hermitiens), de l'analyse en composantes principales (PCA) et du PageRank de Google."
-  },
-  {
-    latex: "\\det(A) = \\sum_{\\sigma \\in S_n} \\text{sgn}(\\sigma) \\prod_{i=1}^n a_{i,\\sigma(i)}",
-    name: "Déterminant (définition)",
-    domain: "Algèbre linéaire",
-    author: "Leibniz",
-    era: "XVIIe siècle",
-    type: "Définition algébrique",
-    field: "Mathématiques",
-    complexity: 4,
-    fact: "Leibniz formula pour le déterminant utilise le groupe des permutations S_n. Le déterminant mesure le facteur d'échelle volumique de la transformation linéaire associée à la matrice."
-  },
-  {
-    latex: "\\pi = 4\\sum_{k=0}^{\\infty}\\frac{(-1)^k}{2k+1}",
-    name: "Série de Leibniz pour π",
-    domain: "Analyse",
-    author: "Leibniz",
-    era: "XVIIe siècle",
-    type: "Série alternée",
-    field: "Mathématiques",
-    complexity: 2,
-    fact: "Découverte indépendamment par Madhava au XIVe siècle. Elle converge vers π/4 mais très lentement. Elle est surtout intéressante théoriquement ; d'autres formules sont bien plus efficaces numériquement."
-  },
-  /* ─── CHIMIE / PHYSICO-CHIMIE ─── */
-  {
-    latex: "\\Delta G = \\Delta H - T\\Delta S",
-    name: "Énergie libre de Gibbs",
-    domain: "Thermodynamique chimique",
-    author: "Gibbs",
-    era: "XIXe siècle",
-    type: "Fonction d'état",
-    field: "Chimie",
-    complexity: 3,
-    fact: "Willard Gibbs définit cette fonction pour caractériser la spontanéité des réactions chimiques à pression et température constantes. ΔG < 0 : réaction spontanée ; ΔG = 0 : équilibre."
-  },
-  {
-    latex: "K = e^{-\\Delta G^\\circ / RT}",
-    name: "Constante d'équilibre thermodynamique",
-    domain: "Thermodynamique chimique",
-    author: "Van 't Hoff",
-    era: "XIXe siècle",
-    type: "Relation d'équilibre",
-    field: "Chimie",
-    complexity: 3,
-    fact: "Relie la constante d'équilibre K à la variation d'énergie libre standard ΔG°. Plus ΔG° est négatif, plus K est grand et plus l'équilibre est déplacé vers les produits."
-  },
-  {
-    latex: "\\ln K(T) = -\\frac{\\Delta H^\\circ}{RT} + \\frac{\\Delta S^\\circ}{R}",
-    name: "Loi de Van 't Hoff",
-    domain: "Thermodynamique chimique",
-    author: "Van 't Hoff",
-    era: "XIXe siècle",
-    type: "Loi d'équilibre",
-    field: "Chimie",
-    complexity: 3,
-    fact: "Montre que lnK varie linéairement avec 1/T. Permet de déterminer ΔH° et ΔS° expérimentalement à partir d'une courbe lnK vs 1/T. Van 't Hoff reçut le 1er prix Nobel de chimie en 1901."
-  },
-  {
-    latex: "j = \\sigma E",
-    name: "Loi d'Ohm (forme locale)",
-    domain: "Électrocinétique",
-    author: "Ohm",
-    era: "XIXe siècle",
-    type: "Loi de transport",
-    field: "Physique",
-    complexity: 3,
-    fact: "La forme locale de la loi d'Ohm relie la densité de courant j à la conductivité σ et au champ électrique E. Plus générale que U=RI, elle s'applique en tout point d'un matériau conducteur."
-  },
-  {
-    latex: "c = \\frac{1}{\\sqrt{\\varepsilon_0 \\mu_0}}",
-    name: "Vitesse de la lumière (Maxwell)",
-    domain: "Électromagnétisme",
-    author: "Maxwell",
-    era: "XIXe siècle",
-    type: "Relation fondamentale",
-    field: "Physique",
-    complexity: 3,
-    fact: "Maxwell déduisit en 1865 que les ondes électromagnétiques se propagent à c ≈ 3×10⁸ m/s — exactement la vitesse de la lumière mesurée expérimentalement, prouvant que la lumière est une onde électromagnétique."
-  },
-  /* ─── SUPPLÉMENTAIRES ─── */
-  {
-    latex: "\\tau = r \\times F",
-    name: "Moment d'une force (couple)",
-    domain: "Mécanique classique",
-    author: "Archimède",
-    era: "Antiquité",
-    type: "Définition vectorielle",
-    field: "Physique",
-    complexity: 2,
-    fact: "Archimède a compris le principe du levier et du moment de force, déclarant « donnez-moi un point d'appui et je soulèverai le monde ». La version vectorielle avec le produit croisé est due à la formalisation moderne."
-  },
-  {
-    latex: "a_n = a_1 + (n-1)d",
-    name: "Suite arithmétique",
-    domain: "Suites et séries",
-    author: "Gauss",
-    era: "XVIIIe siècle",
-    type: "Formule de récurrence",
-    field: "Mathématiques",
-    complexity: 1,
-    fact: "Gauss aurait découvert enfant la somme des 100 premiers entiers en remarquant que les paires (1+100, 2+99, ...) donnent toutes 101. La suite arithmétique est l'une des structures les plus fondamentales."
-  },
-  {
-    latex: "S_n = \\frac{n(a_1 + a_n)}{2}",
-    name: "Somme d'une suite arithmétique",
-    domain: "Suites et séries",
-    author: "Gauss",
-    era: "XVIIIe siècle",
-    type: "Formule de sommation",
-    field: "Mathématiques",
-    complexity: 1,
-    fact: "La légende dit que Gauss, âgé de 10 ans, calcula 1+2+…+100=5050 instantanément grâce à cette astuce. Cette formule généralise ce résultat à toute suite arithmétique."
-  },
-  {
-    latex: "\\nabla^2 f = \\frac{\\partial^2 f}{\\partial x^2}+\\frac{\\partial^2 f}{\\partial y^2}+\\frac{\\partial^2 f}{\\partial z^2}",
-    name: "Opérateur Laplacien",
-    domain: "Analyse vectorielle",
-    author: "Laplace",
-    era: "XVIIIe siècle",
-    type: "Opérateur différentiel",
-    field: "Mathématiques",
-    complexity: 4,
-    fact: "Le laplacien apparaît dans l'équation de la chaleur, l'équation d'onde et l'équation de Poisson. En mécanique quantique, l'énergie cinétique est proportionnelle à ∇²ψ."
-  },
-  {
-    latex: "\\cos(a+b) = \\cos a\\cos b - \\sin a\\sin b",
-    name: "Formule d'addition cosinus",
-    domain: "Trigonométrie",
-    author: "Ptolémée",
-    era: "Antiquité",
-    type: "Identité trigonométrique",
-    field: "Mathématiques",
-    complexity: 2,
-    fact: "Connue de Ptolémée sous une forme équivalente (théorème de Ptolémée sur les quadrilatères cycliques). Elle est à la base de toutes les formules trigonométriques dérivées et de la transformée de Fourier."
-  },
-  {
-    latex: "\\frac{\\partial u}{\\partial t} = \\alpha \\nabla^2 u",
-    name: "Équation de la chaleur",
-    domain: "Équations aux dérivées partielles",
-    author: "Fourier",
-    era: "XIXe siècle",
-    type: "EDP parabolique",
-    field: "Physique",
-    complexity: 5,
-    fact: "Fourier développa les séries qui portent son nom pour résoudre cette équation. Elle décrit la diffusion thermique mais aussi la diffusion de particules (équation de diffusion) et les prix d'options en finance (Black-Scholes)."
-  },
-  {
-    latex: "V = \\frac{4}{3}\\pi r^3",
-    name: "Volume d'une sphère",
-    domain: "Géométrie",
-    author: "Archimède",
-    era: "Antiquité",
-    type: "Formule géométrique",
-    field: "Mathématiques",
-    complexity: 1,
-    fact: "Archimède démontra cette formule par une méthode d'exhaustion (ancêtre du calcul intégral). Il était si fier de ce résultat qu'il voulut une sphère inscrite dans un cylindre gravée sur sa tombe."
-  },
-];
-
-// ═══════════════════════════════════════════════════════
-// CATEGORIES & ORDINALS
-// ═══════════════════════════════════════════════════════
-const CATS = [
-  { key:"domain",     label:"Domaine",      icon:"📐" },
-  { key:"author",     label:"Auteur",        icon:"🧑‍🔬" },
-  { key:"era",        label:"Époque",        icon:"🕰️",  ordinal:true },
-  { key:"field",      label:"Matière",       icon:"🔭" },
-  { key:"type",       label:"Type",          icon:"🏷️" },
-  { key:"complexity", label:"Complexité",    icon:"⚡", ordinal:true },
-];
-
+// ── ERA_ORDER (pour les flèches ordinales) ──
 const ERA_ORDER = ["Antiquité","IXe siècle","XVIIe siècle","XVIIIe siècle","XIXe siècle","XXe siècle","XXIe siècle"];
-const COMPLEXITY_LABELS = {1:"★ Triviale",2:"★★ Lycée",3:"★★★ Prépa",4:"★★★★ Master",5:"★★★★★ Recherche"};
 
-function ordinalArrow(guessVal, targetVal, order) {
-  const gi = typeof guessVal === "number"
-    ? guessVal
-    : order.indexOf(guessVal);
-  const ti = typeof targetVal === "number"
-    ? targetVal
-    : order.indexOf(targetVal);
-  if (gi === -1 || ti === -1 || gi === ti) return "";
-  return gi < ti ? "↑" : "↓";
-}
+// ── COMPLEXITY labels ──
+const CPLX = {1:"★ Triviale",2:"★★ Lycée",3:"★★★ Prépa",4:"★★★★ Master",5:"★★★★★ Recherche"};
 
-function catDisplay(formula, key) {
-  if (key === "complexity") return COMPLEXITY_LABELS[formula.complexity] || formula.complexity;
-  return formula[key];
-}
+// ══════════════════════════════════════════════════════════════════════
+//  DONNÉES — FORMULES MATHÉMATIQUES
+// ══════════════════════════════════════════════════════════════════════
+const MATH_FORMULAS = [
+  {
+    latex:"x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}",
+    name:"Formule quadratique", author:"Al-Khwarizmi",
+    vars:4, operation:"Racine", constants:"Aucune",
+    domain:"Algèbre", era:"IXe siècle", complexity:1,
+    fact:"La méthode pour résoudre ce type d'équation était connue des Babyloniens, mais sa formulation algébrique moderne vient d'un mathématicien dont le nom a donné 'algorithme'.",
+    clues:["Elle donne les solutions d'un type d'équation polynomial de degré 2.","Elle contient un discriminant qui détermine le nombre de solutions réelles.","Son auteur a donné son nom à un concept central de l'informatique."]
+  },
+  {
+    latex:"e^{i\\theta} = \\cos\\theta + i\\sin\\theta",
+    name:"Formule d'Euler", author:"Euler",
+    vars:3, operation:"Exponentielle", constants:"e",
+    domain:"Analyse complexe", era:"XVIIIe siècle", complexity:3,
+    fact:"Cette formule est le fondement du traitement du signal moderne : elle permet de représenter toute oscillation comme la partie réelle d'une exponentielle complexe.",
+    clues:["Elle relie l'exponentielle à deux fonctions trigonométriques.","Elle est indispensable pour les calculs en électronique et traitement du signal.","Elle généralise l'exponentielle aux nombres complexes."]
+  },
+  {
+    latex:"e^{i\\pi}+1=0",
+    name:"Identité d'Euler", author:"Euler",
+    vars:5, operation:"Exponentielle", constants:"e, π",
+    domain:"Analyse complexe", era:"XVIIIe siècle", complexity:3,
+    fact:"Souvent élue plus belle formule des mathématiques. Elle réunit dans une seule égalité les cinq constantes considérées comme les plus fondamentales.",
+    clues:["Cette formule ne contient aucune variable — uniquement des constantes.","Elle réunit cinq des symboles les plus importants des mathématiques.","C'est un cas particulier d'une formule plus générale reliant exponentielle et trigonométrie."]
+  },
+  {
+    latex:"\\frac{d}{dx}\\int_a^x f(t)\\,dt = f(x)",
+    name:"Théorème fondamental du calcul", author:"Newton / Leibniz",
+    vars:3, operation:"Dérivée", constants:"Aucune",
+    domain:"Analyse", era:"XVIIe siècle", complexity:3,
+    fact:"Ce théorème relie deux opérations qui semblaient sans rapport. La dispute sur sa paternité est l'une des plus virulentes de l'histoire des mathématiques.",
+    clues:["Il relie deux opérations fondamentales de l'analyse qui sont inverses l'une de l'autre.","Il permet de calculer des intégrales sans revenir aux sommes de Riemann.","Deux mathématiciens se le disputèrent simultanément au XVIIe siècle."]
+  },
+  {
+    latex:"\\sum_{k=0}^{\\infty} x^k = \\frac{1}{1-x}",
+    name:"Série géométrique", author:"Euler",
+    vars:2, operation:"Somme", constants:"Aucune",
+    domain:"Analyse", era:"XVIIIe siècle", complexity:2,
+    fact:"Un paradoxe célèbre (Achille et la tortue) est résolu grâce à elle : une infinité de termes peut avoir une somme finie.",
+    clues:["Elle montre qu'une somme infinie peut valoir un nombre fini.","Elle n'est valable que dans un certain intervalle pour la variable.","Elle est à la base des développements en série entière."]
+  },
+  {
+    latex:"n! \\sim \\sqrt{2\\pi n}\\left(\\frac{n}{e}\\right)^n",
+    name:"Formule de Stirling", author:"Stirling",
+    vars:2, operation:"Racine", constants:"e, π",
+    domain:"Analyse asymptotique", era:"XVIIIe siècle", complexity:3,
+    fact:"Elle est indispensable en physique statistique pour calculer l'entropie, car les factorielles de nombres comme 10²³ sont impossibles à calculer directement.",
+    clues:["Elle approche une opération combinatoire pour les grands entiers.","Elle contient deux constantes transcendantes fondamentales.","Elle est indispensable dès que l'on manipule des systèmes à très grand nombre de particules."]
+  },
+  {
+    latex:"f(x)=\\sum_{n=0}^{\\infty}\\frac{f^{(n)}(a)}{n!}(x-a)^n",
+    name:"Série de Taylor", author:"Taylor",
+    vars:3, operation:"Somme", constants:"Aucune",
+    domain:"Analyse", era:"XVIIIe siècle", complexity:3,
+    fact:"Cet outil permet d'approcher n'importe quelle fonction régulière par un polynôme. Il est à la base de presque tous les développements limités utilisés en physique.",
+    clues:["Elle exprime une fonction comme somme infinie de monômes.","Le cas centré en 0 porte un autre nom.","Elle est valable uniquement dans un certain rayon de convergence autour du point de développement."]
+  },
+  {
+    latex:"\\binom{n}{k}=\\frac{n!}{k!(n-k)!}",
+    name:"Coefficient binomial", author:"Pascal",
+    vars:3, operation:"Division", constants:"Aucune",
+    domain:"Combinatoire", era:"XVIIe siècle", complexity:2,
+    fact:"Ces coefficients apparaissent dans le triangle de Pascal, dans les probabilités binomiales et dans le développement de (a+b)ⁿ. Ils étaient connus des mathématiciens arabes bien avant Pascal.",
+    clues:["Ce nombre compte le nombre de façons de choisir un sous-ensemble dans un ensemble.","Il apparaît dans le développement d'une puissance d'une somme de deux termes.","Il forme un triangle célèbre où chaque valeur est la somme des deux au-dessus."]
+  },
+  {
+    latex:"(a+b)^n=\\sum_{k=0}^{n}\\binom{n}{k}a^k b^{n-k}",
+    name:"Théorème binomial", author:"Newton",
+    vars:4, operation:"Somme", constants:"Aucune",
+    domain:"Algèbre", era:"XVIIe siècle", complexity:2,
+    fact:"Newton généralisa ce résultat aux exposants réels, obtenant des séries entières infinies — un outil d'analyse puissant qui lui servit à calculer des racines et logarithmes.",
+    clues:["Elle développe une puissance d'une somme de deux termes.","Les coefficients qui apparaissent forment un triangle célèbre.","Sa généralisation donne une série entière valable pour tout exposant réel."]
+  },
+  {
+    latex:"P(A|B)=\\frac{P(B|A)P(A)}{P(B)}",
+    name:"Théorème de Bayes", author:"Bayes",
+    vars:4, operation:"Division", constants:"Aucune",
+    domain:"Probabilités", era:"XVIIIe siècle", complexity:3,
+    fact:"Publiée à titre posthume, cette formule est aujourd'hui au cœur de l'intelligence artificielle, du diagnostic médical et du filtrage anti-spam.",
+    clues:["Elle permet de mettre à jour une croyance initiale à la lumière d'une nouvelle observation.","Elle relie deux probabilités conditionnelles inverses l'une de l'autre.","Elle est omniprésente en statistiques inférentielles et en apprentissage automatique."]
+  },
+  {
+    latex:"\\mathcal{L}\\{f\\}(s)=\\int_0^{\\infty}f(t)e^{-st}dt",
+    name:"Transformée de Laplace", author:"Laplace",
+    vars:3, operation:"Intégrale", constants:"Aucune",
+    domain:"Analyse", era:"XVIIIe siècle", complexity:4,
+    fact:"Cet outil transforme les équations différentielles en équations algébriques, bien plus simples à résoudre. Il est fondamental en ingénierie pour l'étude des systèmes de contrôle.",
+    clues:["Il associe à chaque fonction du temps une autre fonction d'une variable complexe.","Il transforme la dérivation en multiplication, simplifiant ainsi les équations différentielles.","Son inverse permet de revenir à la solution originale après avoir résolu dans le domaine transformé."]
+  },
+  {
+    latex:"\\hat{f}(\\xi)=\\int_{-\\infty}^{\\infty}f(x)e^{-2\\pi ix\\xi}dx",
+    name:"Transformée de Fourier", author:"Fourier",
+    vars:3, operation:"Intégrale", constants:"π",
+    domain:"Analyse harmonique", era:"XIXe siècle", complexity:4,
+    fact:"Elle décompose un signal en ses fréquences constituantes — comme un prisme décompose la lumière blanche. Elle est à la base du MP3, du JPEG et de l'IRM.",
+    clues:["Elle transforme un signal du domaine temporel vers le domaine fréquentiel.","C'est la généralisation continue des séries de Fourier.","Elle est au cœur de toutes les technologies de compression de signal."]
+  },
+  {
+    latex:"\\mathbf{A}\\mathbf{x}=\\lambda\\mathbf{x}",
+    name:"Équation aux valeurs propres", author:"Cauchy",
+    vars:3, operation:"Égalité", constants:"Aucune",
+    domain:"Algèbre linéaire", era:"XIXe siècle", complexity:3,
+    fact:"Elle est au cœur de la mécanique quantique, de l'analyse de données (ACP), de la stabilité des structures et du PageRank de Google.",
+    clues:["Elle demande de trouver des vecteurs qui ne changent pas de direction sous une transformation.","Elle est fondamentale en mécanique quantique : les grandeurs physiques y sont définies par ce type d'équation.","Elle est aussi utilisée dans les moteurs de recherche et l'analyse en composantes principales."]
+  },
+  {
+    latex:"\\det(A)=\\sum_{\\sigma\\in S_n}\\text{sgn}(\\sigma)\\prod_{i=1}^n a_{i,\\sigma(i)}",
+    name:"Déterminant (formule de Leibniz)", author:"Leibniz",
+    vars:3, operation:"Somme", constants:"Aucune",
+    domain:"Algèbre linéaire", era:"XVIIe siècle", complexity:4,
+    fact:"Le déterminant mesure le facteur d'échelle volumique de la transformation linéaire. La formule utilise le groupe des permutations Sₙ.",
+    clues:["Il mesure le 'volume' de l'image d'un cube unité par une transformation linéaire.","Il vaut 0 si et seulement si la transformation est non inversible.","Sa définition utilise une somme sur tous les réarrangements possibles des indices."]
+  },
+  {
+    latex:"x_{n+1}=x_n-\\frac{f(x_n)}{f'(x_n)}",
+    name:"Méthode de Newton-Raphson", author:"Newton",
+    vars:3, operation:"Division", constants:"Aucune",
+    domain:"Analyse numérique", era:"XVIIe siècle", complexity:3,
+    fact:"Cet algorithme converge quadratiquement : chaque itération double environ le nombre de décimales correctes. Il est utilisé dans quasiment tous les langages de programmation.",
+    clues:["Il définit une suite dont le but est d'approcher un zéro d'une fonction.","Sa convergence est très rapide : l'erreur diminue au carré à chaque étape.","Il utilise à la fois la valeur et la pente d'une fonction en un point."]
+  },
+  {
+    latex:"\\cos(a+b)=\\cos a\\cos b-\\sin a\\sin b",
+    name:"Formule d'addition cosinus", author:"Ptolémée",
+    vars:4, operation:"Somme", constants:"Aucune",
+    domain:"Trigonométrie", era:"Antiquité", complexity:2,
+    fact:"Cette identité est à la base de toutes les formules trigonométriques dérivées et permet de linéariser les produits de fonctions, essentiels en physique.",
+    clues:["Elle relie la valeur d'une fonction en une somme d'angles à ses valeurs aux angles séparés.","Elle est à la base de toutes les identités trigonométriques dérivées.","Elle est essentielle pour linéariser les produits de fonctions trigonométriques."]
+  },
+  {
+    latex:"\\int_a^b f(x)dx = \\lim_{n\\to\\infty}\\sum_{k=1}^n f(x_k)\\Delta x",
+    name:"Intégrale de Riemann", author:"Riemann",
+    vars:4, operation:"Limite", constants:"Aucune",
+    domain:"Analyse", era:"XIXe siècle", complexity:3,
+    fact:"C'est la définition rigoureuse de l'intégrale, comme limite de sommes de rectangles. Elle permit à Riemann de définir l'intégrale de fonctions bien plus générales que celles de Cauchy.",
+    clues:["Elle définit une opération de l'analyse comme limite d'une somme discrète.","Elle représente géométriquement une aire sous une courbe.","C'est la formalisation rigoureuse d'un concept intuitif développé au XVIIe siècle."]
+  },
+  {
+    latex:"\\|\\mathbf{u}+\\mathbf{v}\\|\\leq\\|\\mathbf{u}\\|+\\|\\mathbf{v}\\|",
+    name:"Inégalité triangulaire", author:"Cauchy",
+    vars:2, operation:"Inégalité", constants:"Aucune",
+    domain:"Analyse / Algèbre linéaire", era:"XIXe siècle", complexity:2,
+    fact:"Cette inégalité est une propriété fondamentale de toute norme. Elle généralise le fait géométrique que dans un triangle, la longueur d'un côté est inférieure à la somme des deux autres.",
+    clues:["Elle énonce une propriété de base de tout espace muni d'une façon de mesurer les distances.","Elle est l'une des trois propriétés qui définissent une norme.","Elle généralise la règle géométrique des triangles à n'importe quel espace vectoriel."]
+  },
+  {
+    latex:"\\mathbf{u}\\cdot\\mathbf{v}=\\|\\mathbf{u}\\|\\|\\mathbf{v}\\|\\cos\\theta",
+    name:"Produit scalaire et angle", author:"Cauchy",
+    vars:4, operation:"Produit", constants:"Aucune",
+    domain:"Algèbre linéaire", era:"XIXe siècle", complexity:2,
+    fact:"Cette formule relie une opération algébrique (le produit scalaire) à une grandeur géométrique (l'angle). Elle est fondamentale pour projeter des vecteurs et décomposer des forces.",
+    clues:["Elle relie une opération entre deux vecteurs à l'angle qu'ils forment.","Elle vaut 0 si et seulement si les deux objets sont perpendiculaires.","Elle est à la base de la projection orthogonale et de l'orthogonalisation de Gram-Schmidt."]
+  },
+  {
+    latex:"\\sum_{k=1}^{n} k = \\frac{n(n+1)}{2}",
+    name:"Somme des entiers", author:"Gauss",
+    vars:2, operation:"Somme", constants:"Aucune",
+    domain:"Arithmétique", era:"XVIIIe siècle", complexity:1,
+    fact:"La légende dit que l'auteur, âgé de 10 ans, calcula instantanément la somme des 100 premiers entiers en remarquant que les paires extrêmes donnent toutes le même résultat.",
+    clues:["Elle donne la somme de tous les entiers de 1 à n.","Elle peut se prouver en appariant les termes extrêmes de la suite.","Le résultat pour n=100 fut calculé mentalement par un mathématicien célèbre à l'âge de 10 ans."]
+  },
+  {
+    latex:"z = r e^{i\\theta}",
+    name:"Forme exponentielle d'un complexe", author:"Euler",
+    vars:3, operation:"Exponentielle", constants:"e",
+    domain:"Analyse complexe", era:"XVIIIe siècle", complexity:2,
+    fact:"Cette représentation est fondamentale pour multiplier des nombres complexes : les modules se multiplient et les arguments s'additionnent, ce qui simplifie énormément les calculs.",
+    clues:["Elle représente un nombre complexe à l'aide de son module et de son argument.","Elle transforme la multiplication de nombres complexes en une simple addition d'angles.","Elle est directement liée à une formule reliant exponentielle et fonctions trigonométriques."]
+  },
+  {
+    latex:"\\lim_{h\\to 0}\\frac{f(x+h)-f(x)}{h}=f'(x)",
+    name:"Définition de la dérivée", author:"Newton / Leibniz",
+    vars:3, operation:"Limite", constants:"Aucune",
+    domain:"Analyse", era:"XVIIe siècle", complexity:2,
+    fact:"C'est la définition fondamentale de la dérivée, comme limite d'un taux d'accroissement. Newton l'appelait 'fluxion', Leibniz utilisait la notation d/dx que nous utilisons encore.",
+    clues:["Elle définit rigoureusement la notion de pente instantanée d'une courbe.","Elle est le point de départ de tout le calcul différentiel.","Deux notations différentes sont encore en usage aujourd'hui, héritées de deux mathématiciens qui se disputèrent."]
+  },
+  {
+    latex:"P(X=k)=\\binom{n}{k}p^k(1-p)^{n-k}",
+    name:"Loi binomiale", author:"Bernoulli",
+    vars:4, operation:"Produit", constants:"Aucune",
+    domain:"Probabilités", era:"XVIIIe siècle", complexity:2,
+    fact:"Elle modélise le nombre de succès dans n épreuves indépendantes. Elle est à la base des tests statistiques les plus courants et du contrôle qualité industriel.",
+    clues:["Elle donne la probabilité d'obtenir exactement k succès en n essais indépendants.","Elle utilise le coefficient qui compte le nombre de façons d'obtenir ces k succès.","Elle se généralise à la loi normale pour n grand, par le théorème de la limite centrale."]
+  },
+  {
+    latex:"f'(x)=\\lim_{x\\to a}\\frac{f(x)-f(a)}{x-a}",
+    name:"Dérivée en un point (seconde définition)", author:"Cauchy",
+    vars:3, operation:"Limite", constants:"Aucune",
+    domain:"Analyse", era:"XIXe siècle", complexity:2,
+    fact:"Cette formulation de la dérivée, due à Cauchy, est équivalente à la définition par taux d'accroissement mais souvent plus commode en pratique pour prouver la dérivabilité.",
+    clues:["Elle définit la pente d'une courbe en un point particulier de façon alternative.","Elle exprime la dérivée comme une limite de pentes de droites sécantes.","Elle est équivalente à une autre définition par taux d'accroissement, mais formulée différemment."]
+  },
+  {
+    latex:"\\text{Var}(X)=E[(X-\\mu)^2]=E[X^2]-(E[X])^2",
+    name:"Variance d'une variable aléatoire", author:"Gauss",
+    vars:3, operation:"Égalité", constants:"Aucune",
+    domain:"Probabilités", era:"XVIIIe siècle", complexity:2,
+    fact:"La variance mesure la dispersion d'une distribution. La formule de droite (König-Huygens) est la plus pratique pour les calculs : elle évite de centrer la variable avant de calculer.",
+    clues:["Elle mesure à quel point une quantité aléatoire s'écarte de sa valeur moyenne.","Sa racine carrée est une grandeur qui s'exprime dans la même unité que la variable.","Sa formulation pratique s'appelle formule de König-Huygens."]
+  },
+  {
+    latex:"\\nabla^2 f=\\frac{\\partial^2 f}{\\partial x^2}+\\frac{\\partial^2 f}{\\partial y^2}+\\frac{\\partial^2 f}{\\partial z^2}",
+    name:"Opérateur laplacien", author:"Laplace",
+    vars:2, operation:"Dérivée partielle", constants:"Aucune",
+    domain:"Analyse vectorielle", era:"XVIIIe siècle", complexity:4,
+    fact:"Le laplacien apparaît dans l'équation de la chaleur, l'équation d'onde et l'équation de Poisson. En mécanique quantique, l'énergie cinétique lui est proportionnelle.",
+    clues:["Il mesure comment une fonction s'écarte localement de sa moyenne sur une petite sphère autour d'un point.","Il vaut 0 pour les fonctions harmoniques qui modélisent les potentiels.","Il apparaît dans presque toutes les EDP de la physique classique."]
+  },
+  {
+    latex:"\\iint_D(\\partial_x Q-\\partial_y P)\\,dA=\\oint_{\\partial D}P\\,dx+Q\\,dy",
+    name:"Formule de Green", author:"Green",
+    vars:4, operation:"Intégrale", constants:"Aucune",
+    domain:"Analyse vectorielle", era:"XIXe siècle", complexity:4,
+    fact:"George Green, autodidacte fils de meunier, publia ce résultat en 1828. Il relie une intégrale de surface à une intégrale curviligne sur le bord.",
+    clues:["Elle relie une intégrale sur une surface plane à une intégrale sur son bord.","C'est un cas particulier d'un théorème plus général en dimension quelconque.","Elle permet de calculer des aires et des circulations sans paramétrer directement la courbe."]
+  },
+  {
+    latex:"\\int_a^b f(x)g'(x)dx=[f(x)g(x)]_a^b-\\int_a^b f'(x)g(x)dx",
+    name:"Intégration par parties", author:"Taylor",
+    vars:3, operation:"Intégrale", constants:"Aucune",
+    domain:"Analyse", era:"XVIIIe siècle", complexity:3,
+    fact:"C'est la version intégrale de la règle du produit de dérivation. Elle est indispensable pour calculer des intégrales de produits de fonctions de natures différentes.",
+    clues:["Elle transforme une intégrale difficile en une autre, potentiellement plus simple.","C'est la version intégrale de la règle de dérivation d'un produit.","Elle est souvent appliquée de façon itérative, parfois jusqu'à retomber sur l'intégrale de départ."]
+  },
+  {
+    latex:"\\int f(g(x))g'(x)dx=F(g(x))+C",
+    name:"Changement de variable (intégration)", author:"Leibniz",
+    vars:3, operation:"Intégrale", constants:"Aucune",
+    domain:"Analyse", era:"XVIIe siècle", complexity:3,
+    fact:"C'est la règle de la chaîne appliquée à l'intégrale. Elle permet de simplifier de nombreuses intégrales en substituant une sous-expression par une nouvelle variable.",
+    clues:["Elle simplifie une intégrale en remplaçant une sous-expression par une nouvelle variable.","C'est la version intégrale de la règle de dérivation des fonctions composées.","Elle est aussi appelée 'substitution' ou 'intégration par substitution'."]
+  },
+  {
+    latex:"z^n = r^n e^{in\\theta}",
+    name:"Formule de Moivre", author:"De Moivre",
+    vars:3, operation:"Exponentielle", constants:"Aucune",
+    domain:"Analyse complexe", era:"XVIIIe siècle", complexity:3,
+    fact:"Elle généralise les formules trigonométriques de duplication à n'importe quelle puissance. Elle permet de calculer cos(nθ) et sin(nθ) en termes de cos(θ) et sin(θ).",
+    clues:["Elle donne la puissance n-ième d'un nombre complexe en termes de module et argument.","Elle permet d'exprimer cos(nθ) et sin(nθ) grâce aux polynômes de Chebyshev.","Elle est un corollaire d'une formule plus générale sur les exponentielles complexes."]
+  },
+];
 
-// ═══════════════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════════════
-let STATE = {
-  target: null,
-  guesses: [],
-  maxGuesses: 7,
-  revealedCats: new Set(),
-  gameOver: false,
-  won: false,
-  filter: "",
-  roundScore: 0,
-  stats: { wins:0, played:0, streak:0, totalScore:0 },
+// ══════════════════════════════════════════════════════════════════════
+//  DONNÉES — THÉORÈMES MATHÉMATIQUES
+// ══════════════════════════════════════════════════════════════════════
+const MATH_THEOREMS = [
+  {
+    latex:"a^2+b^2=c^2",
+    name:"Théorème de Pythagore", author:"Pythagore",
+    vars:3, operation:"Somme", constants:"Aucune",
+    domain:"Géométrie euclidienne", era:"Antiquité", complexity:1,
+    fact:"Connu des Babyloniens 1000 ans avant le mathématicien grec qui lui a donné son nom. Il existe plus de 370 preuves différentes de ce théorème.",
+    clues:["Il caractérise une figure géométrique très particulière par une relation entre ses côtés.","Il est à la base du calcul des distances dans un plan.","Il relie les longueurs de trois segments d'une même figure plane."]
+  },
+  {
+    latex:"\\zeta(s)=\\sum_{n=1}^{\\infty}\\frac{1}{n^s}",
+    name:"Fonction zêta de Riemann", author:"Riemann",
+    vars:2, operation:"Somme", constants:"Aucune",
+    domain:"Théorie des nombres", era:"XIXe siècle", complexity:5,
+    fact:"L'hypothèse sur les zéros de cette fonction, formulée en 1859, est l'un des sept problèmes du millénaire non résolus. Sa résolution rapporterait un million de dollars.",
+    clues:["Elle est reliée à la distribution des nombres premiers.","Une conjecture sur ses propriétés est l'un des problèmes les plus célèbres non résolus.","Elle est définie par une somme infinie mais s'étend à tout le plan complexe."]
+  },
+  {
+    latex:"\\oint_{\\partial\\Omega}\\omega=\\int_{\\Omega}d\\omega",
+    name:"Théorème de Stokes généralisé", author:"Stokes",
+    vars:2, operation:"Intégrale", constants:"Aucune",
+    domain:"Analyse différentielle", era:"XIXe siècle", complexity:5,
+    fact:"Il unifie en une seule formule le théorème de Green, le théorème de la divergence et le théorème de Stokes classique. C'est l'un des plus beaux résultats des mathématiques modernes.",
+    clues:["Il relie l'intégrale d'un objet sur un domaine à l'intégrale de son dérivé sur le bord.","Il unifie plusieurs théorèmes célèbres de l'analyse vectorielle en une seule formule.","Il nécessite le formalisme des formes différentielles pour s'exprimer dans sa généralité."]
+  },
+  {
+    latex:"\\pi(x)\\sim\\frac{x}{\\ln x}",
+    name:"Théorème des nombres premiers", author:"Hadamard / De la Vallée Poussin",
+    vars:2, operation:"Équivalence", constants:"Aucune",
+    domain:"Théorie des nombres", era:"XIXe siècle", complexity:5,
+    fact:"Ce résultat, conjecturé par Gauss à 15 ans en observant des tables de nombres premiers, ne fut prouvé qu'un siècle plus tard, en utilisant l'analyse complexe.",
+    clues:["Il donne un équivalent asymptotique du nombre de nombres premiers inférieurs à x.","Il fut conjecturé par un mathématicien célèbre à l'adolescence mais prouvé bien plus tard.","Sa preuve utilise des outils d'analyse complexe appliqués à la théorie des nombres."]
+  },
+  {
+    latex:"\\forall n>2,\\; a^n+b^n\\neq c^n",
+    name:"Grand théorème de Fermat", author:"Wiles",
+    vars:3, operation:"Inégalité", constants:"Aucune",
+    domain:"Théorie des nombres", era:"XXe siècle", complexity:5,
+    fact:"Fermat nota en marge de son livre en 1637 avoir une preuve 'merveilleuse', trop grande pour la marge. La vraie preuve ne fut trouvée qu'en 1994, après 350 ans d'efforts.",
+    clues:["Ce théorème généralise une célèbre relation à des puissances supérieures.","Son énoncé est simple mais sa preuve a résisté pendant 357 ans.","La preuve finale occupe plus de 100 pages et utilise des mathématiques du XXe siècle."]
+  },
+  {
+    latex:"e=\\lim_{n\\to\\infty}\\left(1+\\frac{1}{n}\\right)^n",
+    name:"Définition du nombre e", author:"Euler",
+    vars:2, operation:"Limite", constants:"e",
+    domain:"Analyse", era:"XVIIIe siècle", complexity:2,
+    fact:"Cette limite apparaît naturellement dans le calcul des intérêts composés en temps continu. C'est la raison pour laquelle ce nombre est fondamental en économie et en croissance exponentielle.",
+    clues:["Elle définit rigoureusement une constante fondamentale de l'analyse.","Elle apparaît naturellement dans le calcul des intérêts composés à fréquence infinie.","La constante qu'elle définit est la base de la seule exponentielle égale à sa propre dérivée."]
+  },
+  {
+    latex:"\\sqrt{2}\\notin\\mathbb{Q}",
+    name:"Irrationalité de √2", author:"Hippase de Métaponte",
+    vars:1, operation:"Inégalité", constants:"Aucune",
+    domain:"Arithmétique", era:"Antiquité", complexity:2,
+    fact:"La découverte de ce résultat aurait provoqué un scandale chez les pythagoriciens, qui croyaient que tout était nombre rationnel. La légende dit que l'auteur fut jeté à la mer.",
+    clues:["Ce résultat montre qu'un nombre géométrique naturel n'appartient pas à un certain ensemble.","Sa preuve par l'absurde est l'une des plus élégantes des mathématiques.","Sa découverte est l'une des premières crises fondationnelles des mathématiques."]
+  },
+  {
+    latex:"\\langle f,g\\rangle=\\int_a^b f(x)\\overline{g(x)}dx",
+    name:"Produit scalaire L² (Hilbert)", author:"Hilbert",
+    vars:3, operation:"Intégrale", constants:"Aucune",
+    domain:"Analyse fonctionnelle", era:"XIXe siècle", complexity:4,
+    fact:"Cet espace de fonctions de carré intégrable, muni de ce produit scalaire, est le cadre naturel de la mécanique quantique et de l'analyse de Fourier.",
+    clues:["Il définit une façon de mesurer l'angle et la distance entre deux fonctions.","Il permet d'appliquer toute la géométrie euclidienne au monde des fonctions.","Il est le cadre mathématique de la mécanique quantique."]
+  },
+  {
+    latex:"\\text{Card}(\\mathbb{R})>\\text{Card}(\\mathbb{N})",
+    name:"Théorème de Cantor (cardinalités)", author:"Cantor",
+    vars:2, operation:"Inégalité", constants:"Aucune",
+    domain:"Théorie des ensembles", era:"XIXe siècle", complexity:4,
+    fact:"Cantor prouva par l'argument diagonal qu'il existe des infinis de tailles différentes. Ce résultat choqua profondément la communauté mathématique de l'époque.",
+    clues:["Il montre que deux infinis peuvent être de tailles différentes.","Sa preuve utilise un argument diagonal célèbre.","Il distingue les infinis 'dénombrables' des infinis 'non dénombrables'."]
+  },
+  {
+    latex:"f(b)-f(a)=\\int_a^b f'(x)dx",
+    name:"Formule de Newton-Leibniz", author:"Newton / Leibniz",
+    vars:3, operation:"Intégrale", constants:"Aucune",
+    domain:"Analyse", era:"XVIIe siècle", complexity:2,
+    fact:"C'est la formulation pratique du théorème fondamental du calcul. Elle permet de calculer l'intégrale d'une fonction en trouvant simplement une primitive.",
+    clues:["Elle permet de calculer une intégrale définie à partir d'une primitive.","Elle montre que l'intégrale et la dérivée sont des opérations inverses.","C'est la formule que l'on utilise en pratique pour évaluer des intégrales."]
+  },
+  {
+    latex:"\\left|\\langle u,v\\rangle\\right|\\leq\\|u\\|\\cdot\\|v\\|",
+    name:"Inégalité de Cauchy-Schwarz", author:"Cauchy",
+    vars:2, operation:"Inégalité", constants:"Aucune",
+    domain:"Algèbre linéaire", era:"XIXe siècle", complexity:3,
+    fact:"Cette inégalité est l'une des plus utilisées en mathématiques. Elle implique que le cosinus de l'angle entre deux vecteurs est toujours entre -1 et 1.",
+    clues:["Elle borne le produit scalaire par le produit des normes.","Elle est équivalente au fait qu'un cosinus reste compris entre -1 et 1.","Elle est utilisée dans des domaines aussi variés que la statistique, la physique quantique et l'intégration."]
+  },
+  {
+    latex:"p\\text{ premier}\\Rightarrow a^p\\equiv a\\pmod{p}",
+    name:"Petit théorème de Fermat", author:"Fermat",
+    vars:2, operation:"Égalité", constants:"Aucune",
+    domain:"Arithmétique modulaire", era:"XVIIe siècle", complexity:3,
+    fact:"Ce théorème est la base du test de primalité de Fermat et du chiffrement RSA. Il préfigure le théorème d'Euler plus général.",
+    clues:["Il concerne la puissance d'un entier par rapport à un nombre particulier.","Il est à la base de nombreux tests de primalité modernes.","Il est généralisé par un résultat d'Euler qui ne nécessite pas que le module soit premier."]
+  },
+  {
+    latex:"\\bar{X}_n\\xrightarrow{p.s.}\\mu",
+    name:"Loi des grands nombres (forte)", author:"Kolmogorov",
+    vars:2, operation:"Limite", constants:"Aucune",
+    domain:"Probabilités", era:"XXe siècle", complexity:4,
+    fact:"Elle justifie rigoureusement pourquoi répéter une expérience aléatoire un grand nombre de fois donne une estimation fiable de l'espérance. C'est le fondement mathématique des statistiques.",
+    clues:["Elle justifie pourquoi la moyenne empirique converge vers la valeur théorique.","Elle est le fondement mathématique de toute la statistique inférentielle.","Il en existe une version faible (convergence en probabilité) et une forte (convergence presque sûre)."]
+  },
+  {
+    latex:"\\frac{\\bar{X}-\\mu}{\\sigma/\\sqrt{n}}\\xrightarrow{\\mathcal{L}}\\mathcal{N}(0,1)",
+    name:"Théorème central limite", author:"Laplace",
+    vars:4, operation:"Limite", constants:"Aucune",
+    domain:"Probabilités", era:"XVIIIe siècle", complexity:4,
+    fact:"Ce théorème explique l'omniprésence de la loi normale dans la nature. Quelle que soit la distribution des observations individuelles, leur moyenne normalisée converge vers la même loi.",
+    clues:["Il explique pourquoi la loi normale apparaît si souvent dans les phénomènes naturels.","Il dit que la moyenne de beaucoup de variables aléatoires suit approximativement la même loi, quelle que soit leur distribution.","Il est à la base de presque tous les tests statistiques classiques."]
+  },
+  {
+    latex:"V-E+F=2",
+    name:"Formule d'Euler (polyèdres)", author:"Euler",
+    vars:3, operation:"Somme", constants:"Aucune",
+    domain:"Topologie / Géométrie", era:"XVIIIe siècle", complexity:3,
+    fact:"Cette formule relie le nombre de sommets, arêtes et faces de tout polyèdre convexe. Elle fut l'une des premières formules topologiques : elle est invariante par déformation continue.",
+    clues:["Elle relie trois quantités caractéristiques d'un solide géométrique.","Elle vaut toujours 2 pour n'importe quel solide convexe, quelle que soit sa forme.","Elle fut l'une des premières découvertes en topologie."]
+  },
+  {
+    latex:"f'(c)=\\frac{f(b)-f(a)}{b-a}",
+    name:"Théorème des accroissements finis", author:"Lagrange",
+    vars:4, operation:"Égalité", constants:"Aucune",
+    domain:"Analyse", era:"XVIIIe siècle", complexity:2,
+    fact:"Ce théorème assure qu'une voiture qui parcourt 100 km en 1 heure a forcément, à un moment, roulé exactement à 100 km/h. Il est fondamental pour majorer les erreurs d'approximation.",
+    clues:["Il assure l'existence d'un point où la pente locale est égale à la pente globale.","Il est à la base des majorations d'erreur en analyse numérique.","L'exemple de la voiture qui atteint sa vitesse moyenne est une illustration classique."]
+  },
+  {
+    latex:"\\text{Im}(f)\\cong G/\\ker(f)",
+    name:"Théorème d'isomorphisme", author:"Noether",
+    vars:3, operation:"Égalité", constants:"Aucune",
+    domain:"Algèbre abstraite", era:"XXe siècle", complexity:4,
+    fact:"Emmy Noether, pionnière de l'algèbre moderne, énonça ce résultat dans le cadre des groupes. Il est fondamental en algèbre abstraite et apparaît aussi dans la théorie de Galois.",
+    clues:["Il caractérise l'image d'un morphisme à isomorphisme près.","Il est fondamental en algèbre abstraite et s'applique aux groupes, anneaux et espaces vectoriels.","Son énoncé dit que deux structures sont 'essentiellement identiques' modulo le noyau."]
+  },
+  {
+    latex:"f(z_0)=\\frac{1}{2\\pi i}\\oint_\\gamma \\frac{f(z)}{z-z_0}dz",
+    name:"Formule intégrale de Cauchy", author:"Cauchy",
+    vars:3, operation:"Intégrale", constants:"π",
+    domain:"Analyse complexe", era:"XIXe siècle", complexity:5,
+    fact:"Ce résultat remarquable dit qu'une fonction analytique est entièrement déterminée par ses valeurs sur une courbe fermée. Il permet de calculer des intégrales réelles par des méthodes complexes.",
+    clues:["Il permet de retrouver les valeurs d'une fonction à l'intérieur d'un contour à partir de ses valeurs sur le contour.","Il est à la base du calcul des résidus en analyse complexe.","Il exprime une propriété extraordinaire : une fonction analytique est infiniment déterminée par ses valeurs sur le bord."]
+  },
+  {
+    latex:"\\text{ord}(H)\\mid\\text{ord}(G)",
+    name:"Théorème de Lagrange (groupes)", author:"Lagrange",
+    vars:2, operation:"Division", constants:"Aucune",
+    domain:"Algèbre abstraite", era:"XVIIIe siècle", complexity:3,
+    fact:"Ce théorème fondamental de la théorie des groupes dit que la taille d'un sous-groupe divise toujours la taille du groupe entier. Il a des conséquences immédiates en théorie des nombres.",
+    clues:["Il concerne la relation entre la taille d'un ensemble algébrique et celle de son sous-ensemble.","Il est immédiatement utile pour prouver le petit théorème de Fermat.","Il dit que certaines tailles sont impossibles pour un sous-groupe d'un groupe donné."]
+  },
+  {
+    latex:"\\hat{f}(\\xi)=\\sum_{n\\in\\mathbb{Z}}c_n\\delta(\\xi-n)",
+    name:"Formule de Poisson (peigne de Dirac)", author:"Poisson",
+    vars:3, operation:"Somme", constants:"Aucune",
+    domain:"Analyse harmonique", era:"XIXe siècle", complexity:5,
+    fact:"La formule de sommation de Poisson relie la transformée de Fourier d'une fonction périodique à ses coefficients de Fourier, en utilisant le peigne de Dirac. Elle est fondamentale en traitement du signal numérique.",
+    clues:["Elle relie le spectre d'un signal échantillonné à sa version continue.","Elle est à la base du théorème de Shannon sur l'échantillonnage.","Elle fait apparaître une distribution tempérée très singulière dans la transformée."]
+  },
+  {
+    latex:"\\exists! x\\in E,\\; f(x)=x",
+    name:"Théorème du point fixe de Banach", author:"Banach",
+    vars:2, operation:"Égalité", constants:"Aucune",
+    domain:"Analyse fonctionnelle", era:"XXe siècle", complexity:4,
+    fact:"Ce théorème garantit l'existence et l'unicité d'un point fixe pour toute contraction dans un espace complet. Il est à la base de la méthode de Newton et de nombreuses preuves d'existence en EDP.",
+    clues:["Il garantit qu'une certaine transformation a exactement un point qui ne bouge pas.","Il est à la base de nombreuses méthodes itératives de résolution d'équations.","Il s'applique dans tout espace métrique complet pour les applications contractantes."]
+  },
+];
+
+// ══════════════════════════════════════════════════════════════════════
+//  DONNÉES — FORMULES PHYSIQUES
+// ══════════════════════════════════════════════════════════════════════
+const PHYS_FORMULAS = [
+  {
+    latex:"E=mc^2",
+    name:"Équivalence masse-énergie", author:"Einstein",
+    vars:3, operation:"Égalité", constants:"c (vitesse lumière)",
+    domain:"Relativité restreinte", era:"XXe siècle", complexity:2,
+    fact:"Publiée en 1905, cette formule implique que même un objet au repos possède une énergie colossale. 1 gramme de matière contient autant d'énergie que 20 000 tonnes de TNT.",
+    clues:["Elle relie deux grandeurs physiques qui semblaient sans rapport.","Elle implique qu'un tout petit gramme de matière recèle une énergie gigantesque.","Elle est à la base du fonctionnement des réacteurs nucléaires et des étoiles."]
+  },
+  {
+    latex:"F=ma",
+    name:"2e loi de Newton", author:"Newton",
+    vars:3, operation:"Égalité", constants:"Aucune",
+    domain:"Mécanique classique", era:"XVIIe siècle", complexity:1,
+    fact:"Cette loi a dominé la physique pendant plus de deux siècles. Elle reste valable pour toute vitesse très inférieure à celle de la lumière.",
+    clues:["C'est l'une des lois les plus utilisées en physique expérimentale.","Elle relie une cause (une action) à un effet cinématique.","Elle est la deuxième d'un ensemble de trois lois fondamentales publiées en 1687."]
+  },
+  {
+    latex:"F=G\\frac{m_1 m_2}{r^2}",
+    name:"Loi de gravitation universelle", author:"Newton",
+    vars:5, operation:"Produit", constants:"G (gravitation)",
+    domain:"Mécanique céleste", era:"XVIIe siècle", complexity:2,
+    fact:"Elle permit de prédire les orbites planétaires avec une précision étonnante. Elle explique pourquoi la Lune ne tombe pas sur Terre : elle tombe, mais la Terre se dérobe sous elle.",
+    clues:["Elle prédit la force entre deux objets qui ne se touchent pas.","Elle décroît avec le carré de la distance : doubler la distance divise l'effet par quatre.","Elle fut vérifiée en observant les trajectoires d'objets célestes."]
+  },
+  {
+    latex:"i\\hbar\\frac{\\partial\\psi}{\\partial t}=\\hat{H}\\psi",
+    name:"Équation de Schrödinger", author:"Schrödinger",
+    vars:4, operation:"Dérivée partielle", constants:"ℏ (Planck réduit)",
+    domain:"Mécanique quantique", era:"XXe siècle", complexity:5,
+    fact:"Son interprétation probabiliste fut au cœur d'un débat épique entre deux des plus grands physiciens du XXe siècle. Elle régit le comportement de tout objet à l'échelle atomique.",
+    clues:["Elle décrit l'évolution d'un objet sans position précise.","Sa solution donne une distribution de probabilités, pas une trajectoire.","Elle est à la physique quantique ce que F=ma est à la mécanique classique."]
+  },
+  {
+    latex:"S=k_B\\ln\\Omega",
+    name:"Entropie de Boltzmann", author:"Boltzmann",
+    vars:3, operation:"Logarithme", constants:"k_B (Boltzmann)",
+    domain:"Physique statistique", era:"XIXe siècle", complexity:4,
+    fact:"Cette formule est gravée sur la tombe de son auteur à Vienne. Elle relie le désordre microscopique à une grandeur macroscopique mesurable.",
+    clues:["Elle relie le nombre de configurations microscopiques à une grandeur macroscopique.","Elle implique une opération qui transforme un nombre astronomique en nombre raisonnable.","La grandeur qu'elle définit ne peut que croître dans un système isolé."]
+  },
+  {
+    latex:"PV=nRT",
+    name:"Loi des gaz parfaits", author:"Clapeyron",
+    vars:5, operation:"Produit", constants:"R (constante des gaz)",
+    domain:"Thermodynamique", era:"XIXe siècle", complexity:2,
+    fact:"C'est une synthèse de trois lois expérimentales découvertes sur deux siècles. Elle est dite 'idéale' car elle néglige les interactions entre molécules.",
+    clues:["Elle relie quatre grandeurs physiques mesurables d'un gaz.","Elle n'est valable que dans une limite idéalisée jamais parfaitement atteinte.","Elle synthétise les travaux de trois scientifiques sur les propriétés des gaz."]
+  },
+  {
+    latex:"\\Delta x\\cdot\\Delta p\\geq\\frac{\\hbar}{2}",
+    name:"Principe d'incertitude de Heisenberg", author:"Heisenberg",
+    vars:3, operation:"Inégalité", constants:"ℏ (Planck réduit)",
+    domain:"Mécanique quantique", era:"XXe siècle", complexity:4,
+    fact:"Ce n'est pas une limitation de nos instruments : c'est une propriété fondamentale de la nature. Même un appareil parfait ne pourrait pas contourner cette limite.",
+    clues:["Elle dit que deux grandeurs ne peuvent pas être toutes deux parfaitement connues simultanément.","Elle n'est pas due à l'imperfection des instruments — c'est intrinsèque à la réalité.","Elle concerne la position et la quantité de mouvement d'une particule."]
+  },
+  {
+    latex:"F=q(\\mathbf{E}+\\mathbf{v}\\times\\mathbf{B})",
+    name:"Force de Lorentz", author:"Lorentz",
+    vars:4, operation:"Somme", constants:"Aucune",
+    domain:"Électromagnétisme", era:"XIXe siècle", complexity:3,
+    fact:"La partie magnétique de cette force est toujours perpendiculaire au déplacement : elle ne fournit jamais d'énergie à la particule, mais courbe seulement sa trajectoire.",
+    clues:["Elle s'applique à des objets portant une propriété particulière dans un champ.","Elle est la somme de deux contributions de natures différentes.","L'une des deux contributions est toujours perpendiculaire à la vitesse."]
+  },
+  {
+    latex:"\\lambda=\\frac{h}{p}",
+    name:"Relation de De Broglie", author:"De Broglie",
+    vars:3, operation:"Division", constants:"h (Planck)",
+    domain:"Mécanique quantique", era:"XXe siècle", complexity:3,
+    fact:"Cette idée fut proposée dans une thèse de doctorat. Les membres du jury étaient si incertains qu'ils envoyèrent la thèse à Einstein avant de l'accepter.",
+    clues:["Elle associe une propriété ondulatoire à un objet habituellement considéré comme une particule.","Elle fut confirmée par une expérience de diffraction sur des électrons.","Elle dit que plus un objet est lourd ou rapide, plus sa propriété ondulatoire est petite."]
+  },
+  {
+    latex:"c=\\frac{1}{\\sqrt{\\varepsilon_0\\mu_0}}",
+    name:"Vitesse de la lumière (Maxwell)", author:"Maxwell",
+    vars:3, operation:"Racine", constants:"μ₀, ε₀",
+    domain:"Électromagnétisme", era:"XIXe siècle", complexity:3,
+    fact:"En calculant la vitesse des ondes électromagnétiques à partir de constantes électriques et magnétiques connues, le physicien réalisa que le résultat coïncidait exactement avec la vitesse de la lumière.",
+    clues:["Cette égalité relia la lumière à deux autres phénomènes physiques — une découverte inattendue.","Elle est obtenue en cherchant la vitesse de propagation d'une onde dans le vide.","Elle implique que la lumière est un cas particulier d'un phénomène plus général."]
+  },
+  {
+    latex:"\\Delta G=\\Delta H-T\\Delta S",
+    name:"Énergie libre de Gibbs", author:"Gibbs",
+    vars:4, operation:"Somme", constants:"Aucune",
+    domain:"Thermodynamique chimique", era:"XIXe siècle", complexity:3,
+    fact:"Willard Gibbs, autodidacte en physique théorique, fut l'un des plus grands scientifiques du XIXe siècle mais resta longtemps méconnu en dehors des États-Unis.",
+    clues:["Elle prédit si une réaction chimique se produira spontanément.","Elle combine énergie échangée avec le milieu et désordre du système.","Son signe suffit à déterminer la spontanéité d'un processus à T et P constantes."]
+  },
+  {
+    latex:"T=2\\pi\\sqrt{\\frac{L}{g}}",
+    name:"Période du pendule simple", author:"Huygens",
+    vars:3, operation:"Racine", constants:"π, g",
+    domain:"Mécanique classique", era:"XVIIe siècle", complexity:2,
+    fact:"Galilée avait observé l'isochronisme du pendule en chronométrant ses oscillations avec son propre pouls. Huygens utilisa ce principe pour inventer la première horloge précise.",
+    clues:["Elle donne la durée d'un cycle d'un mouvement oscillatoire simple.","Étonnamment, cette durée ne dépend pas de l'amplitude (pour de petits angles).","Elle fut utilisée pour construire le premier instrument précis de mesure du temps."]
+  },
+  {
+    latex:"p=\\rho g h",
+    name:"Pression hydrostatique", author:"Pascal",
+    vars:4, operation:"Produit", constants:"g (gravité)",
+    domain:"Mécanique des fluides", era:"XVIIe siècle", complexity:1,
+    fact:"Pascal démontra ce principe en vissant un long tube sur un tonneau rempli d'eau et en versant de l'eau dans le tube depuis une hauteur, faisant éclater le tonneau.",
+    clues:["Elle donne la force exercée par un fluide sur une surface en fonction de la profondeur.","Elle explique pourquoi les barrages sont plus épais à leur base qu'à leur sommet.","Elle est à la base du calcul de la pression subie par les sous-marins."]
+  },
+  {
+    latex:"U=\\frac{1}{2}kx^2",
+    name:"Énergie potentielle élastique", author:"Hooke",
+    vars:3, operation:"Produit", constants:"Aucune",
+    domain:"Mécanique classique", era:"XVIIe siècle", complexity:1,
+    fact:"L'oscillateur harmonique qu'elle décrit est l'approximation locale de presque tous les systèmes physiques au voisinage d'un équilibre stable.",
+    clues:["Elle donne l'énergie stockée dans un système écarté de son équilibre.","Elle est quadratique en l'écart à l'équilibre.","Elle est valable pour tout système oscillant au voisinage d'un minimum d'énergie."]
+  },
+  {
+    latex:"E^2=(pc)^2+(m_0 c^2)^2",
+    name:"Relation énergie-impulsion relativiste", author:"Einstein",
+    vars:4, operation:"Somme", constants:"c (vitesse lumière)",
+    domain:"Relativité restreinte", era:"XXe siècle", complexity:4,
+    fact:"Cette formule unifie masse, énergie et impulsion. Pour un photon sans masse, elle donne E=pc, ce qui montre que la lumière transporte bien de l'impulsion malgré l'absence de masse.",
+    clues:["Elle généralise E=mc² aux objets en mouvement.","Pour un objet sans masse, elle donne une relation simple entre énergie et impulsion.","Elle unifies trois grandeurs fondamentales de la relativité dans une seule relation."]
+  },
+  {
+    latex:"\\nabla\\times\\mathbf{B}=\\mu_0\\mathbf{J}+\\mu_0\\varepsilon_0\\frac{\\partial\\mathbf{E}}{\\partial t}",
+    name:"Équation de Maxwell-Ampère", author:"Maxwell",
+    vars:4, operation:"Rotationnel", constants:"μ₀, ε₀",
+    domain:"Électromagnétisme", era:"XIXe siècle", complexity:5,
+    fact:"En ajoutant un terme à une loi existante pour des raisons de cohérence mathématique, le physicien prédit l'existence des ondes radio avant même qu'elles soient découvertes.",
+    clues:["Elle fait partie d'un système de quatre équations qui unifient l'électricité et le magnétisme.","Un terme fut ajouté pour la rendre cohérente — et cela prédit quelque chose d'inattendu.","Elle relie la rotation d'un champ à des courants et à la variation d'un autre champ."]
+  },
+  {
+    latex:"\\vec{\\nabla}\\cdot\\vec{E}=\\frac{\\rho}{\\varepsilon_0}",
+    name:"Loi de Gauss (électrostatique)", author:"Gauss",
+    vars:3, operation:"Divergence", constants:"ε₀",
+    domain:"Électromagnétisme", era:"XIXe siècle", complexity:4,
+    fact:"C'est la première des quatre équations de Maxwell. Elle signifie que les charges électriques sont les sources et puits du champ électrique.",
+    clues:["Elle fait partie d'un groupe de quatre équations fondamentales de l'électromagnétisme.","Elle relie le comportement local d'un champ vectoriel à sa source.","Elle dit que si quelque chose 'sort' d'un volume, une source se trouve à l'intérieur."]
+  },
+  {
+    latex:"E_n=-\\frac{13.6}{n^2}\\text{ eV}",
+    name:"Niveaux d'énergie de l'hydrogène", author:"Bohr",
+    vars:2, operation:"Division", constants:"Aucune",
+    domain:"Physique atomique", era:"XXe siècle", complexity:4,
+    fact:"Cette formule prédit exactement les raies du spectre de l'hydrogène observées par Balmer. Ce fut l'une des premières preuves de la quantification de l'énergie.",
+    clues:["Elle prédit des valeurs discrètes d'une grandeur physique, pas continues.","Elle explique pourquoi un atome émet de la lumière à des couleurs précises.","Elle ne s'applique exactement qu'à l'atome le plus simple de la nature."]
+  },
+  {
+    latex:"E=-\\frac{\\partial V}{\\partial x}",
+    name:"Champ électrique et potentiel", author:"Laplace",
+    vars:3, operation:"Dérivée", constants:"Aucune",
+    domain:"Électrostatique", era:"XVIIIe siècle", complexity:3,
+    fact:"Cette relation montre que le champ électrique 'descend' les pentes du potentiel, exactement comme un objet glisse vers le bas d'une pente gravitationnelle.",
+    clues:["Elle dit qu'un champ vectoriel est obtenu par différentiation d'un champ scalaire.","Elle est analogue à la relation entre force gravitationnelle et énergie potentielle.","Elle permet de calculer le champ à partir d'une seule grandeur scalaire."]
+  },
+  {
+    latex:"\\hat{p}=-i\\hbar\\nabla",
+    name:"Opérateur quantité de mouvement", author:"Heisenberg",
+    vars:2, operation:"Gradient", constants:"ℏ (Planck réduit)",
+    domain:"Mécanique quantique", era:"XXe siècle", complexity:5,
+    fact:"En mécanique quantique, les grandeurs physiques deviennent des opérateurs. Appliqué à la fonction d'onde, cet opérateur donne la quantité de mouvement en valeur moyenne.",
+    clues:["En mécanique quantique, les grandeurs classiques deviennent des objets de ce type.","Il agit sur la fonction d'onde pour extraire une information sur le mouvement.","Il fait intervenir la constante fondamentale de l'échelle quantique."]
+  },
+  {
+    latex:"\\mathbf{F}=-\\nabla V",
+    name:"Force conservative et énergie potentielle", author:"Lagrange",
+    vars:2, operation:"Gradient", constants:"Aucune",
+    domain:"Mécanique classique", era:"XVIIIe siècle", complexity:3,
+    fact:"Cette formule est le fondement de la mécanique lagrangienne. Connaître V suffit à tout savoir sur la dynamique d'un système conservatif.",
+    clues:["Elle relie un objet vectoriel à un objet scalaire.","Elle s'applique uniquement aux forces qui vérifient une propriété de conservation.","Elle généralise en 3D la relation entre force et énergie potentielle."]
+  },
+  {
+    latex:"K=e^{-\\Delta G^\\circ/RT}",
+    name:"Constante d'équilibre thermodynamique", author:"Van 't Hoff",
+    vars:4, operation:"Exponentielle", constants:"R (constante des gaz)",
+    domain:"Thermodynamique chimique", era:"XIXe siècle", complexity:3,
+    fact:"Son auteur reçut le tout premier prix Nobel de chimie en 1901. Elle relie le bilan énergétique d'une réaction à son état d'équilibre.",
+    clues:["Elle relie une grandeur énergétique à une constante d'équilibre via une exponentielle.","Plus la réaction est favorable énergétiquement, plus la constante est grande.","Son auteur reçut le premier Nobel de chimie jamais décerné."]
+  },
+  {
+    latex:"\\nabla^2 V=-\\frac{\\rho}{\\varepsilon_0}",
+    name:"Équation de Poisson (électrostatique)", author:"Poisson",
+    vars:3, operation:"Dérivée partielle", constants:"ε₀",
+    domain:"Électrostatique", era:"XIXe siècle", complexity:4,
+    fact:"Dans le vide (ρ=0), cette équation se réduit à l'équation de Laplace, qui décrit aussi les fluides parfaits et la diffusion de la chaleur.",
+    clues:["Elle relie le potentiel électrique à sa source.","Dans le cas sans source, elle se réduit à l'équation d'un autre mathématicien.","C'est une EDP elliptique du second ordre."]
+  },
+  {
+    latex:"\\frac{\\partial u}{\\partial t}=\\alpha\\nabla^2 u",
+    name:"Équation de la chaleur", author:"Fourier",
+    vars:3, operation:"Dérivée partielle", constants:"Aucune",
+    domain:"EDP / Thermodynamique", era:"XIXe siècle", complexity:5,
+    fact:"C'est en cherchant à résoudre cette équation que son auteur inventa les séries qui portent son nom. Elle décrit aussi la diffusion de particules et le modèle de Black-Scholes en finance.",
+    clues:["Elle décrit comment une grandeur se répartit et s'uniformise dans l'espace.","Elle a inspiré une nouvelle façon de décomposer les fonctions qui révolutionna l'analyse.","Elle est parabolique : l'information se propage à vitesse infinie."]
+  },
+  {
+    latex:"j=\\sigma E",
+    name:"Loi d'Ohm (forme locale)", author:"Ohm",
+    vars:3, operation:"Égalité", constants:"Aucune",
+    domain:"Électrocinétique", era:"XIXe siècle", complexity:3,
+    fact:"Cette forme locale est plus générale que U=RI. Elle s'applique en tout point d'un matériau conducteur et relie densité de courant et champ électrique.",
+    clues:["C'est la version plus générale d'une loi très connue des électriciens.","Elle s'applique en tout point d'un matériau, pas uniquement aux bornes d'un composant.","Elle introduit une grandeur caractéristique du matériau qui mesure sa capacité à conduire le courant."]
+  },
+];
+
+// ══════════════════════════════════════════════════════════════════════
+//  DONNÉES — THÉORÈMES PHYSIQUES
+// ══════════════════════════════════════════════════════════════════════
+const PHYS_THEOREMS = [
+  {
+    latex:"\\frac{dE}{dt}=0",
+    name:"Conservation de l'énergie", author:"Helmholtz",
+    vars:2, operation:"Dérivée", constants:"Aucune",
+    domain:"Thermodynamique", era:"XIXe siècle", complexity:2,
+    fact:"Ce principe fut énoncé de façon générale en 1847 après des travaux sur la chaleur et le travail mécanique. Il est le premier principe de la thermodynamique.",
+    clues:["Il dit qu'une certaine grandeur ne peut être ni créée ni détruite dans un système isolé.","C'est l'un des principes les plus fondamentaux de toute la physique.","Il permet d'analyser des systèmes complexes sans connaître tous les détails microscopiques."]
+  },
+  {
+    latex:"dS\\geq 0",
+    name:"Second principe de la thermodynamique", author:"Clausius",
+    vars:1, operation:"Inégalité", constants:"Aucune",
+    domain:"Thermodynamique", era:"XIXe siècle", complexity:3,
+    fact:"Ce principe interdit les machines thermiques parfaites et prédit la 'mort thermique' de l'univers. Il introduit une asymétrie fondamentale entre passé et futur.",
+    clues:["Il introduit une asymétrie irréductible entre les deux sens du temps.","Il interdit certaines transformations pourtant compatibles avec la conservation de l'énergie.","Il prédit que tout système isolé évolue vers le désordre maximal."]
+  },
+  {
+    latex:"\\nabla\\times\\mathbf{E}=-\\frac{\\partial\\mathbf{B}}{\\partial t}",
+    name:"Loi de Faraday-Maxwell", author:"Faraday / Maxwell",
+    vars:3, operation:"Rotationnel", constants:"Aucune",
+    domain:"Électromagnétisme", era:"XIXe siècle", complexity:4,
+    fact:"Faraday découvrit expérimentalement que tout champ magnétique variable crée un courant électrique. Maxwell en fit une équation locale rigoureuse.",
+    clues:["Elle dit qu'un champ magnétique qui varie dans le temps crée un champ électrique tourbillonnaire.","C'est le principe de fonctionnement des générateurs et des transformateurs électriques.","Elle fait partie du groupe de quatre équations qui unifient électricité et magnétisme."]
+  },
+  {
+    latex:"\\oint\\mathbf{B}\\cdot d\\mathbf{l}=\\mu_0 I_{\\text{enc}}",
+    name:"Théorème d'Ampère (forme intégrale)", author:"Ampère",
+    vars:3, operation:"Intégrale", constants:"μ₀",
+    domain:"Électromagnétisme", era:"XIXe siècle", complexity:3,
+    fact:"Ampère formula mathématiquement les observations de Ørsted sur la création d'un champ magnétique par un courant, en seulement quelques semaines après avoir entendu parler de l'expérience.",
+    clues:["Elle relie la circulation d'un champ magnétique sur un contour fermé aux courants qu'il encercle.","Elle permet de calculer facilement les champs magnétiques pour des distributions symétriques de courants.","Maxwell l'a complétée avec un terme supplémentaire pour la rendre cohérente."]
+  },
+  {
+    latex:"\\oiint\\mathbf{E}\\cdot d\\mathbf{S}=\\frac{Q_{\\text{enc}}}{\\varepsilon_0}",
+    name:"Théorème de Gauss (forme intégrale)", author:"Gauss",
+    vars:3, operation:"Intégrale", constants:"ε₀",
+    domain:"Électrostatique", era:"XIXe siècle", complexity:3,
+    fact:"Ce théorème permet de calculer très facilement le champ électrique de distributions de charges très symétriques (sphère, cylindre, plan) sans intégrer directement.",
+    clues:["Il relie le flux d'un champ électrique à travers une surface fermée aux charges à l'intérieur.","Il permet de calculer des champs sans intégrer directement sur les charges.","Il est la version intégrale de la première des équations de Maxwell."]
+  },
+  {
+    latex:"\\frac{\\partial Q}{\\partial t}=\\frac{dU}{dt}+W",
+    name:"Premier principe de la thermodynamique", author:"Clausius / Kelvin",
+    vars:3, operation:"Dérivée", constants:"Aucune",
+    domain:"Thermodynamique", era:"XIXe siècle", complexity:2,
+    fact:"Ce principe dit simplement que la chaleur reçue par un système sert soit à augmenter son énergie interne, soit à produire du travail. C'est la conservation de l'énergie en thermodynamique.",
+    clues:["Il exprime la conservation de l'énergie pour un système thermodynamique.","Il relie trois grandeurs : énergie interne, chaleur et travail.","Il dit qu'on ne peut pas créer d'énergie à partir de rien."]
+  },
+  {
+    latex:"\\eta\\leq 1-\\frac{T_c}{T_h}",
+    name:"Rendement de Carnot", author:"Carnot",
+    vars:3, operation:"Inégalité", constants:"Aucune",
+    domain:"Thermodynamique", era:"XIXe siècle", complexity:3,
+    fact:"Carnot démontra en 1824 qu'aucune machine thermique ne peut dépasser ce rendement, quelle que soit sa conception. Ce résultat préfigure le second principe de la thermodynamique.",
+    clues:["Il borne le rendement de toute machine thermique fonctionnant entre deux températures.","Aucune machine réelle ne peut dépasser cette limite, quelle que soit son ingéniosité.","Il montre que le travail est d'autant plus facile à extraire que l'écart de température est grand."]
+  },
+  {
+    latex:"\\mathbf{J}=\\frac{1}{\\mu_0}\\nabla\\times\\mathbf{B}",
+    name:"Densité de courant et champ magnétique", author:"Maxwell",
+    vars:3, operation:"Rotationnel", constants:"μ₀",
+    domain:"Électromagnétisme", era:"XIXe siècle", complexity:4,
+    fact:"C'est la forme différentielle statique du théorème d'Ampère, valable lorsque les champs ne varient pas dans le temps. Elle est à la base du calcul des champs magnétostatiques.",
+    clues:["Elle relie la rotation d'un champ magnétique aux courants qui le créent.","C'est la version locale du théorème d'Ampère, valable point par point.","Elle est l'une des équations de Maxwell dans le cas statique."]
+  },
+  {
+    latex:"\\frac{d\\mathbf{L}}{dt}=\\boldsymbol{\\tau}",
+    name:"Théorème du moment cinétique", author:"Newton",
+    vars:2, operation:"Dérivée", constants:"Aucune",
+    domain:"Mécanique classique", era:"XVIIe siècle", complexity:2,
+    fact:"C'est l'analogue rotationnel de F=ma. Il explique la précession des gyroscopes et la façon dont les patineurs accélèrent leur rotation en ramenant les bras.",
+    clues:["C'est l'analogue rotationnel de la deuxième loi fondamentale de la dynamique.","Il explique la précession des gyroscopes.","Il prédit que si le couple extérieur est nul, une quantité de rotation se conserve."]
+  },
+  {
+    latex:"E_c=\\frac{1}{2}mv^2",
+    name:"Énergie cinétique", author:"Coriolis",
+    vars:3, operation:"Produit", constants:"Aucune",
+    domain:"Mécanique classique", era:"XIXe siècle", complexity:1,
+    fact:"Coriolis formula rigoureusement cette expression en 1829. La forme en v² (et non v) fut source de débats au XVIIIe siècle entre partisans de Descartes (mv) et de Leibniz (mv²).",
+    clues:["Elle donne l'énergie possédée par un objet en raison de son mouvement.","Son expression en v² (et non en v) fut longtemps controversée.","Elle varie quadratiquement avec la vitesse : doubler la vitesse quadruple l'énergie."]
+  },
+  {
+    latex:"PV^\\gamma=\\text{cste}",
+    name:"Loi de Laplace (transformation adiabatique)", author:"Laplace",
+    vars:3, operation:"Produit", constants:"γ (rapport des chaleurs)",
+    domain:"Thermodynamique", era:"XVIIIe siècle", complexity:3,
+    fact:"Cette loi s'applique aux transformations adiabatiques réversibles. Elle est fondamentale pour comprendre les moteurs thermiques, le son dans les gaz et la structure des étoiles.",
+    clues:["Elle décrit une transformation qui n'échange pas de chaleur avec le milieu extérieur.","Elle fait intervenir le rapport des capacités thermiques, supérieur à 1.","Elle s'applique aux oscillations sonores dans les gaz."]
+  },
+  {
+    latex:"\\mathbf{F}=-k\\mathbf{x}",
+    name:"Loi de Hooke", author:"Hooke",
+    vars:3, operation:"Produit", constants:"Aucune",
+    domain:"Mécanique classique", era:"XVIIe siècle", complexity:1,
+    fact:"Hooke publia sa loi en 1678 sous forme d'une anagramme latine pour en protéger la priorité. Elle est valable pour tout système au voisinage d'un équilibre stable.",
+    clues:["Elle dit que la force de rappel est proportionnelle à l'écart à l'équilibre et dirigée vers lui.","Elle est à la base du modèle de l'oscillateur harmonique.","Elle est valable pour tout système physique au voisinage de son état d'équilibre."]
+  },
+  {
+    latex:"T\\Delta S=\\Delta U+p\\Delta V",
+    name:"Identité thermodynamique fondamentale", author:"Clausius / Gibbs",
+    vars:5, operation:"Somme", constants:"Aucune",
+    domain:"Thermodynamique", era:"XIXe siècle", complexity:3,
+    fact:"Cette relation combine le premier et le second principe de la thermodynamique pour des transformations réversibles quasi-statiques.",
+    clues:["Elle combine les deux premiers principes de la thermodynamique.","Elle est valable pour les transformations réversibles quasi-statiques.","Elle relie cinq grandeurs thermodynamiques fondamentales."]
+  },
+  {
+    latex:"c=\\lambda\\nu",
+    name:"Relation onde-fréquence", author:"Maxwell",
+    vars:3, operation:"Produit", constants:"c (vitesse lumière)",
+    domain:"Optique / Électromagnétisme", era:"XIXe siècle", complexity:1,
+    fact:"Cette relation est universelle pour toute onde progressive. Appliquée à la lumière, elle relie la couleur (fréquence) à la longueur d'onde — ce qui est mesuré directement par un spectromètre.",
+    clues:["Elle relie trois grandeurs caractéristiques d'une onde progressive.","Elle est universelle pour tout type d'onde : lumière, son, eau.","Elle implique que plus une onde est 'rapide' à osciller, plus ses cycles sont courts."]
+  },
+  {
+    latex:"E=h\\nu",
+    name:"Quantification de l'énergie du photon", author:"Planck",
+    vars:3, operation:"Produit", constants:"h (Planck)",
+    domain:"Physique quantique", era:"XXe siècle", complexity:3,
+    fact:"Cette formule marqua la naissance de la physique quantique en 1900. Planck l'introduisit comme une astuce mathématique — il ne croyait pas lui-même à sa réalité physique au départ.",
+    clues:["Elle dit que l'énergie d'une onde lumineuse n'est pas continue mais vient en 'paquets'.","Elle introduit la constante fondamentale de la physique quantique.","Elle fut le point de départ de toute la mécanique quantique."]
+  },
+  {
+    latex:"\\sigma=\\frac{F}{A}",
+    name:"Contrainte mécanique (Cauchy)", author:"Cauchy",
+    vars:3, operation:"Division", constants:"Aucune",
+    domain:"Mécanique des solides", era:"XIXe siècle", complexity:2,
+    fact:"Cauchy formula rigoureusement la notion de contrainte interne dans un solide, permettant de passer de la mécanique des points à la mécanique des milieux continus.",
+    clues:["Elle définit la force interne exercée par unité de surface dans un matériau.","Elle est à la base de toute la mécanique des solides déformables.","Elle permet de prédire la rupture d'un matériau lorsqu'elle dépasse une valeur critique."]
+  },
+];
+
+// ══════════════════════════════════════════════════════════════════════
+//  MODES
+// ══════════════════════════════════════════════════════════════════════
+const MODES = {
+  "math-f":  { label:"Formules Maths",    icon:"∫",  data:MATH_FORMULAS,  color:"blue",   accent:"var(--blue)",   accentBg:"var(--blue-bg)",   accentBd:"var(--blue-bd)"   },
+  "math-t":  { label:"Théorèmes Maths",   icon:"∀",  data:MATH_THEOREMS,  color:"purple", accent:"var(--purple)", accentBg:"var(--purple-bg)", accentBd:"var(--purple-bd)" },
+  "phys-f":  { label:"Formules Physique", icon:"⚛",  data:PHYS_FORMULAS,  color:"orange", accent:"var(--orange)", accentBg:"var(--orange-bg)", accentBd:"var(--orange-bd)" },
+  "phys-t":  { label:"Théorèmes Physique",icon:"⚡", data:PHYS_THEOREMS,  color:"green",  accent:"var(--green)",  accentBg:"var(--green-bg)",  accentBd:"var(--green-bd)"  },
 };
 
-// ═══════════════════════════════════════════════════════
-// PERSISTENCE
-// ═══════════════════════════════════════════════════════
-function loadStats() {
-  try {
-    const s = JSON.parse(localStorage.getItem("formuldle_v2") || "{}");
-    STATE.stats = {
-      wins: s.wins||0, played: s.played||0,
-      streak: s.streak||0, totalScore: s.totalScore||0
-    };
-  } catch(_) {}
-}
-function saveStats() {
-  localStorage.setItem("formuldle_v2", JSON.stringify(STATE.stats));
-}
+// ══════════════════════════════════════════════════════════════════════
+//  CATÉGORIES (communes à tous les modes)
+// ══════════════════════════════════════════════════════════════════════
+const CATS = [
+  {key:"vars",      label:"Nb. symboles",   icon:"🔢", ordinal:true},
+  {key:"operation", label:"Opération",      icon:"⚙️"},
+  {key:"constants", label:"Constante",      icon:"🌟"},
+  {key:"domain",    label:"Domaine",        icon:"📐"},
+  {key:"era",       label:"Époque",         icon:"🕰️", ordinal:true},
+  {key:"complexity",label:"Complexité",     icon:"⚡", ordinal:true},
+];
 
-// ═══════════════════════════════════════════════════════
-// PICK FORMULA  (daily seed)
-// ═══════════════════════════════════════════════════════
-function pickFormula() {
-  const seed = Math.floor(Date.now() / 86400000);
-  STATE.target = FORMULAS[seed % FORMULAS.length];
-  STATE.guesses = [];
-  STATE.revealedCats = new Set();
-  STATE.gameOver = false;
-  STATE.won = false;
-  STATE.filter = "";
-  STATE.roundScore = 0;
+function catDisplay(f, key) {
+  if (key==="complexity") return CPLX[f.complexity];
+  if (key==="vars")       return f.vars+" symbole"+(f.vars>1?"s":"");
+  return f[key];
 }
-
-// ═══════════════════════════════════════════════════════
-// GAME LOGIC
-// ═══════════════════════════════════════════════════════
-function catStatus(guess, key) {
-  const gv = key === "complexity" ? guess.complexity : guess[key];
-  const tv = key === "complexity" ? STATE.target.complexity : STATE.target[key];
-  if (gv === tv) return "correct";
-  if (key === "complexity" || key === "era") return "wrong"; // arrows handle nearness
-  // partial: shared meaningful word
-  const gw = String(gv).toLowerCase().split(/[\s\/]+/);
-  const tw = String(tv).toLowerCase().split(/[\s\/]+/);
-  if (gw.some(w => tw.includes(w) && w.length > 3)) return "partial";
+function ordinalVal(f, key) {
+  if (key==="era")        return ERA_ORDER.indexOf(f.era);
+  if (key==="complexity") return f.complexity;
+  if (key==="vars")       return f.vars;
+  return null;
+}
+function catStatus(g, key, target) {
+  const gv = key==="complexity"?g.complexity:key==="vars"?g.vars:g[key];
+  const tv = key==="complexity"?target.complexity:key==="vars"?target.vars:target[key];
+  if (String(gv)===String(tv)) return "correct";
+  if (CATS.find(c=>c.key===key)?.ordinal) return "wrong";
+  const gw=String(gv).toLowerCase().split(/[\s\/\-\(\)]+/);
+  const tw=String(tv).toLowerCase().split(/[\s\/\-\(\)]+/);
+  if (gw.some(w=>tw.includes(w)&&w.length>3)) return "partial";
   return "wrong";
 }
-
-function computeScore(guessCount, hintsUsed) {
-  const base = 1000;
-  const guessPenalty = (guessCount - 1) * 120;
-  const hintPenalty  = hintsUsed * 180;
-  return Math.max(50, base - guessPenalty - hintPenalty);
+function arrowFor(g, key, target) {
+  if (!CATS.find(c=>c.key===key)?.ordinal) return "";
+  const gi=ordinalVal(g,key), ti=ordinalVal(target,key);
+  if (gi===null||ti===null||gi===ti) return "";
+  return gi<ti?"↑":"↓";
 }
 
-function makeGuess(idx) {
-  if (STATE.gameOver) return;
-  const guess = FORMULAS[idx];
-  if (STATE.guesses.find(g => g === guess)) return;
-  STATE.guesses.push(guess);
+// ══════════════════════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════════════════════
+let ST = {
+  mode:"math-f",
+  target:null, guesses:[], maxGuesses:7,
+  revealedCats:new Set(), gameOver:false, won:false,
+  filter:"", roundScore:0, howOpen:false,
+  stats:{}  // keyed by mode
+};
+for (const m in MODES) ST.stats[m]={wins:0,played:0,streak:0,totalScore:0};
 
-  if (guess === STATE.target) {
-    STATE.gameOver = true; STATE.won = true;
-    STATE.roundScore = computeScore(STATE.guesses.length, STATE.revealedCats.size);
-    STATE.stats.wins++;
-    STATE.stats.played++;
-    STATE.stats.streak++;
-    STATE.stats.totalScore += STATE.roundScore;
-    saveStats();
-    showToast("+" + STATE.roundScore + " pts 🎉");
-  } else if (STATE.guesses.length >= STATE.maxGuesses) {
-    STATE.gameOver = true;
-    STATE.stats.played++;
-    STATE.stats.streak = 0;
-    saveStats();
+function loadStats() {
+  try {
+    const s=JSON.parse(localStorage.getItem("formuldle_v5")||"{}");
+    for (const m in MODES) {
+      if (s[m]) ST.stats[m]={wins:s[m].wins||0,played:s[m].played||0,streak:s[m].streak||0,totalScore:s[m].totalScore||0};
+    }
+  } catch(_){}
+}
+function saveStats() { localStorage.setItem("formuldle_v5",JSON.stringify(ST.stats)); }
+
+function modeData() { return MODES[ST.mode].data; }
+function modeStats() { return ST.stats[ST.mode]; }
+
+function setMode(m) {
+  ST.mode=m;
+  ST.guesses=[]; ST.revealedCats=new Set();
+  ST.gameOver=false; ST.won=false; ST.filter=""; ST.roundScore=0;
+  pickFormula();
+  // Update CSS accent
+  const mo=MODES[m];
+  document.documentElement.style.setProperty("--accent",mo.accent);
+  document.documentElement.style.setProperty("--accent-bg",mo.accentBg);
+  document.documentElement.style.setProperty("--accent-bd",mo.accentBd);
+  render();
+}
+
+function pickFormula() {
+  const data=modeData();
+  const seed=Math.floor(Date.now()/86400000);
+  ST.target=data[seed%data.length];
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  GAME LOGIC
+// ══════════════════════════════════════════════════════════════════════
+function makeGuess(idx) {
+  if (ST.gameOver) return;
+  const g=modeData()[idx];
+  if (ST.guesses.includes(g)) return;
+  ST.guesses.push(g);
+  const ms=modeStats();
+  if (g===ST.target) {
+    ST.gameOver=true; ST.won=true;
+    ST.roundScore=Math.max(50,1000-(ST.guesses.length-1)*130-ST.revealedCats.size*180);
+    ms.wins++; ms.played++; ms.streak++; ms.totalScore+=ST.roundScore;
+    saveStats(); showToast("+"+ST.roundScore+" pts 🎉","good");
+  } else if (ST.guesses.length>=ST.maxGuesses) {
+    ST.gameOver=true; ms.played++; ms.streak=0; saveStats();
   }
   render();
 }
 
 function revealCat(key) {
-  if (STATE.gameOver || STATE.revealedCats.has(key)) return;
-  if (STATE.guesses.length + STATE.revealedCats.size >= STATE.maxGuesses - 1) {
-    showToast("Plus assez de tentatives pour révéler !");
-    return;
-  }
-  STATE.revealedCats.add(key);
-  showToast("Indice révélé — −180 pts");
-  render();
+  if (ST.gameOver||ST.revealedCats.has(key)) return;
+  if (ST.guesses.length+ST.revealedCats.size>=ST.maxGuesses-1) { showToast("Plus assez de tentatives !","warn"); return; }
+  ST.revealedCats.add(key); showToast("Indice révélé — −180 pts","warn"); render();
 }
 
 function newGame() {
-  const cur = STATE.target;
-  let pick;
-  do { pick = FORMULAS[Math.floor(Math.random() * FORMULAS.length)]; }
-  while (pick === cur);
-  STATE.target = pick;
-  STATE.guesses = [];
-  STATE.revealedCats = new Set();
-  STATE.gameOver = false;
-  STATE.won = false;
-  STATE.filter = "";
-  STATE.roundScore = 0;
+  const data=modeData(); const cur=ST.target; let pick;
+  do { pick=data[Math.floor(Math.random()*data.length)]; } while(pick===cur&&data.length>1);
+  ST.target=pick; ST.guesses=[]; ST.revealedCats=new Set();
+  ST.gameOver=false; ST.won=false; ST.filter=""; ST.roundScore=0;
   render();
 }
 
-// ═══════════════════════════════════════════════════════
-// SHARE
-// ═══════════════════════════════════════════════════════
-function buildShareGrid() {
-  const icons = { correct:"🟩", partial:"🟨", wrong:"🟥" };
-  return STATE.guesses.map(g => {
-    return CATS.map(c => icons[catStatus(g, c.key)]).join("");
-  }).join("\n");
+function toggleHow() {
+  ST.howOpen=!ST.howOpen;
+  document.querySelector(".how-btn")?.classList.toggle("open",ST.howOpen);
+  document.querySelector(".how-body")?.classList.toggle("open",ST.howOpen);
 }
 
+function buildShare() {
+  const ic={correct:"🟩",partial:"🟨",wrong:"🟥"};
+  return ST.guesses.map(g=>CATS.map(c=>ic[catStatus(g,c.key,ST.target)]).join("")).join("\n");
+}
 function copyShare() {
-  const grid = buildShareGrid();
-  const text = `Formuldle — ${STATE.target.name}\n${STATE.guesses.length}/${STATE.maxGuesses} tentatives\n\n${grid}`;
-  navigator.clipboard.writeText(text).then(() => showToast("Copié dans le presse-papiers !"));
+  const t=`Formuldle [${MODES[ST.mode].label}] — ${ST.guesses.length}/${ST.maxGuesses}\n\n${buildShare()}`;
+  navigator.clipboard.writeText(t).then(()=>showToast("Copié !","good"));
 }
 
-// ═══════════════════════════════════════════════════════
-// TOAST
-// ═══════════════════════════════════════════════════════
-let toastTimer;
-function showToast(msg) {
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.classList.add("show");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
+let _tt;
+function showToast(msg,type="") {
+  const t=document.getElementById("toast");
+  t.textContent=msg; t.className="toast show "+(type||"");
+  clearTimeout(_tt); _tt=setTimeout(()=>t.className="toast",2400);
 }
 
-// ═══════════════════════════════════════════════════════
-// RENDER
-// ═══════════════════════════════════════════════════════
-function tex(latex) {
-  try {
-    return katex.renderToString(latex, { throwOnError:false, displayMode:false });
-  } catch(_) { return latex; }
+// ══════════════════════════════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════════════════════════════
+function tex(s) {
+  try { return katex.renderToString(s,{throwOnError:false,displayMode:false}); } catch(_){return s;}
+}
+
+function clueHtml() {
+  const wrongCount=ST.guesses.filter(g=>g!==ST.target).length;
+  const toShow=ST.target.clues.slice(0,wrongCount);
+  if (!toShow.length) return `<div class="clue-strip"><div class="clue-line">
+    <span class="clue-ico">💭</span>
+    <span class="clue-txt" style="font-style:italic">Un indice apparaîtra après votre première tentative ratée…</span>
+  </div></div>`;
+  return `<div class="clue-strip">${toShow.map((c,i)=>`<div class="clue-line">
+    <span class="clue-ico">${["💡","🔍","🎯"][i]}</span>
+    <span class="clue-txt">${c}</span>
+  </div>`).join("")}</div>`;
 }
 
 function render() {
-  const area = document.getElementById("game-area");
+  const area=document.getElementById("area");
+  const ms=modeStats();
+  document.getElementById("s-str").textContent  = ms.streak;
+  document.getElementById("s-win").textContent  = ms.wins;
+  document.getElementById("s-play").textContent = ms.played;
+  document.getElementById("s-pts").textContent  = ms.totalScore;
 
-  document.getElementById("stat-streak").textContent = STATE.stats.streak;
-  document.getElementById("stat-wins").textContent   = STATE.stats.wins;
-  document.getElementById("stat-played").textContent = STATE.stats.played;
-  document.getElementById("stat-score").textContent  = STATE.stats.totalScore;
+  const data=modeData();
+  const remain=ST.maxGuesses-ST.guesses.length;
+  const pct=(ST.guesses.length/ST.maxGuesses)*100;
+  let h="";
 
-  const remainAttempts = STATE.maxGuesses - STATE.guesses.length;
-  let h = "";
-
-  /* ── How to play ── */
-  h += `<div class="how-to">
-    <h3>Comment jouer</h3>
-    Choisissez une formule dans la liste. Chaque tentative révèle les 6 catégories en
-    <span style="color:var(--green)">vert</span> (correct),
-    <span style="color:var(--yellow)">jaune</span> (proche) ou
-    <span style="color:var(--red)">rouge</span> (faux).
-    Pour l'<b>Époque</b> et la <b>Complexité</b>, une flèche ↑↓ indique si la cible est plus haute ou plus basse.
-    Cliquez une catégorie pour révéler un indice (coûte −180 pts &amp; 1 tentative).
-    <div class="legend">
-      <div class="legend-item"><div class="ldot" style="background:var(--green-bg);border:1px solid var(--green)"></div>Correct</div>
-      <div class="legend-item"><div class="ldot" style="background:var(--yellow-bg);border:1px solid var(--yellow)"></div>Proche</div>
-      <div class="legend-item"><div class="ldot" style="background:var(--red-bg);border:1px solid var(--red)"></div>Faux</div>
-    </div>
-  </div>`;
-
-  /* ── Formula card ── */
-  const dotHtml = Array.from({length: STATE.maxGuesses}, (_, i) => {
-    let cls = "";
-    if (i < STATE.guesses.length) {
-      cls = (STATE.guesses[i] === STATE.target) ? "used-ok" : "used-bad";
-    } else {
-      cls = "";
-    }
-    return `<span class="adot ${cls}"></span>`;
-  }).join("");
-
-  h += `<div class="formula-card">
-    <div class="formula-card-label">Formule à deviner</div>
-    <div class="formula-display">
-      ${STATE.gameOver
-        ? `<span>${tex(STATE.target.latex)}</span>`
-        : `<span class="formula-question-mark">?</span>`}
-    </div>
-    <div class="attempt-track">${dotHtml}<span class="attempt-count">${remainAttempts} tentative${remainAttempts>1?"s":""} restante${remainAttempts>1?"s":""}</span></div>
-  </div>`;
-
-  /* ── Target category tiles ── */
-  h += `<div class="cats-title">Indices — cliquez pour révéler (coûte 1 tentative &amp; −180 pts)</div>`;
-  h += `<div class="cats-grid">`;
-  for (const cat of CATS) {
-    const isRevealed = STATE.revealedCats.has(cat.key) || STATE.gameOver;
-    const canReveal  = !isRevealed && !STATE.gameOver &&
-      (STATE.guesses.length + STATE.revealedCats.size < STATE.maxGuesses - 1);
-    h += `<div class="cat-tile ${isRevealed?"locked":""}"
-      onclick="${canReveal ? `revealCat('${cat.key}')` : ""}">
-      <div class="cat-tile-name">${cat.label}</div>
-      <div class="cat-tile-val ${isRevealed?"":"masked"}">
-        ${isRevealed ? catDisplay(STATE.target, cat.key) : "???"}
-      </div>
-      <div class="cat-tile-icon">${cat.icon}</div>
-      ${canReveal ? `<div class="cost-badge">-1 essai</div>` : ""}
+  /* MODE SELECTOR */
+  h+=`<div class="mode-selector">`;
+  for (const [id,mo] of Object.entries(MODES)) {
+    h+=`<div class="mode-btn ${id}${ST.mode===id?" active":""}" onclick="setMode('${id}')">
+      <div class="mb-icon">${mo.icon}</div>
+      <div class="mb-title">${mo.label}</div>
+      <div class="mb-sub">${mo.data.length} ${id.endsWith("-t")?"théorèmes":"formules"}</div>
+      <div class="mb-count">${mo.data.length}</div>
+      <div class="mb-active-dot"></div>
     </div>`;
   }
-  h += `</div>`;
+  h+=`</div>`;
 
-  /* ── Result panel ── */
-  if (STATE.gameOver) {
-    if (STATE.won) {
-      const grid = buildShareGrid();
-      h += `<div class="result-panel win">
-        <div class="result-emoji">🎉</div>
-        <div class="result-title">Bravo !</div>
-        <div style="color:var(--chalk-dim);font-size:.9rem">Trouvé en <b>${STATE.guesses.length}</b> tentative${STATE.guesses.length>1?"s":""}</div>
-        <div class="result-formula-tex">${tex(STATE.target.latex)}</div>
-        <div class="result-name">${STATE.target.name}</div>
-        <div class="result-score">+${STATE.roundScore} pts</div>
-        <div class="result-fact">${STATE.target.fact}</div>
-        <div class="share-grid">${grid}</div>
+  /* HOW TO */
+  h+=`<div class="how-wrap">
+    <button class="how-btn ${ST.howOpen?"open":""}" onclick="toggleHow()">
+      <span>📖 Comment jouer</span><span class="chev">▾</span>
+    </button>
+    <div class="how-body ${ST.howOpen?"open":""}">
+      Choisissez une formule dans la liste. Chaque tentative révèle les 6 catégories :<br>
+      <div class="leg">
+        <div class="leg-i"><div class="ldot" style="background:var(--green-bg);border:1px solid var(--green-bd)"></div><b style="color:var(--green)">Vert</b> = correct</div>
+        <div class="leg-i"><div class="ldot" style="background:var(--yellow-bg);border:1px solid var(--yellow-bd)"></div><b style="color:var(--yellow)">Jaune</b> = mot commun</div>
+        <div class="leg-i"><div class="ldot" style="background:var(--red-bg);border:1px solid var(--red-bd)"></div><b style="color:var(--red)">Rouge</b> = faux</div>
+      </div><br>
+      Pour <b>Époque</b>, <b>Complexité</b> et <b>Nb. de symboles</b> : une flèche <b>↑↓</b> indique si la cible est au-dessus ou en dessous.<br>
+      Les <b>indices</b> se débloquent progressivement (sans jamais citer le nom ni l'auteur).<br>
+      Cliquez une catégorie pour la révéler immédiatement (−1 essai, −180 pts).
+    </div>
+  </div>`;
+
+  /* PROGRESS */
+  const dots=Array.from({length:ST.maxGuesses},(_,i)=>{
+    if (i<ST.guesses.length) return `<span class="ad ${ST.guesses[i]===ST.target?"ok":"bad"}"></span>`;
+    if (i===ST.guesses.length&&!ST.gameOver) return `<span class="ad next"></span>`;
+    return `<span class="ad"></span>`;
+  }).join("");
+  h+=`<div class="prog-wrap">
+    <div class="prog-bg"><div class="prog-fill" style="width:${pct}%"></div></div>
+    <div class="prog-row"><span>${ST.guesses.length}/${ST.maxGuesses}</span><span class="adots">${dots}</span><span>${remain} restante${remain>1?"s":""}</span></div>
+  </div>`;
+
+  /* HERO */
+  h+=`<div class="hero">
+    <div class="hero-lbl">Formule à deviner — ${MODES[ST.mode].label}</div>
+    <div class="hero-formula">${ST.gameOver?tex(ST.target.latex):`<span class="qmark">?</span>`}</div>
+    ${!ST.gameOver?clueHtml():""}
+  </div>`;
+
+  /* CAT TILES */
+  h+=`<div class="sec-hd">
+    <span class="sec-lbl">Indices</span>
+    <span class="sec-sub">Cliquez pour révéler (−1 essai)</span>
+  </div><div class="cats-grid">`;
+  for (const cat of CATS) {
+    const rev=ST.revealedCats.has(cat.key)||ST.gameOver;
+    const can=!rev&&!ST.gameOver&&(ST.guesses.length+ST.revealedCats.size<ST.maxGuesses-1);
+    h+=`<div class="ct ${rev?"locked":""}" onclick="${can?`revealCat('${cat.key}')`:""}" style="${can?"":"cursor:default"}">
+      <div class="ct-nm">${cat.label}</div>
+      <div class="ct-val ${rev?"":"masked"}">${rev?catDisplay(ST.target,cat.key):"???"}</div>
+      <div class="ct-ico">${cat.icon}</div>
+      ${can?`<div class="ct-cost">−1 essai</div>`:""}
+    </div>`;
+  }
+  h+=`</div>`;
+
+  /* RESULT */
+  if (ST.gameOver) {
+    if (ST.won) {
+      h+=`<div class="result win">
+        <div class="r-em">🎉</div>
+        <div class="r-title">Bravo !</div>
+        <div class="r-sub">Trouvé en <b>${ST.guesses.length}</b> tentative${ST.guesses.length>1?"s":""}</div>
+        <div class="r-formula">${tex(ST.target.latex)}</div>
+        <div class="r-name">${ST.target.name}</div>
+        <div class="r-author">— ${ST.target.author}</div>
+        <div class="r-score">+${ST.roundScore} pts</div>
+        <div class="r-fact">${ST.target.fact}</div>
+        <div class="share-grid">${buildShare()}</div>
         <div class="btn-row">
-          <button class="btn btn-primary" onclick="copyShare()">📋 Partager</button>
-          <button class="btn btn-secondary" onclick="newGame()">Nouvelle partie →</button>
+          <button class="btn btn-p" onclick="copyShare()">📋 Partager</button>
+          <button class="btn btn-s" onclick="newGame()">Nouvelle partie →</button>
         </div>
       </div>`;
     } else {
-      h += `<div class="result-panel lose">
-        <div class="result-emoji">📚</div>
-        <div class="result-title">Pas cette fois…</div>
-        <div style="color:var(--chalk-dim);font-size:.9rem">La formule était :</div>
-        <div class="result-formula-tex">${tex(STATE.target.latex)}</div>
-        <div class="result-name">${STATE.target.name}</div>
-        <div class="result-fact">${STATE.target.fact}</div>
-        <div class="btn-row">
-          <button class="btn btn-primary" onclick="newGame()">Réessayer →</button>
-        </div>
+      h+=`<div class="result lose">
+        <div class="r-em">📚</div>
+        <div class="r-title">Pas cette fois…</div>
+        <div class="r-sub">La formule était :</div>
+        <div class="r-formula">${tex(ST.target.latex)}</div>
+        <div class="r-name">${ST.target.name}</div>
+        <div class="r-author">— ${ST.target.author}</div>
+        <div class="r-fact">${ST.target.fact}</div>
+        <div class="btn-row"><button class="btn btn-p" onclick="newGame()">Réessayer →</button></div>
       </div>`;
     }
   }
 
-  /* ── History ── */
-  if (STATE.guesses.length > 0) {
-    h += `<div class="history-section"><div class="section-label">Tentatives</div>`;
-    for (const g of STATE.guesses) {
-      const isWin = g === STATE.target;
-      h += `<div class="history-item">
-        <div class="history-header">
-          <div class="history-formula-tex">${tex(g.latex)}</div>
-          <div class="history-guess-name">${g.name}</div>
-          <div class="history-score-badge ${isWin?"win":"miss"}">${isWin?"✓ Trouvé":"✗"}</div>
+  /* HISTORY */
+  if (ST.guesses.length>0) {
+    h+=`<div class="hist-wrap"><div class="sec-lbl" style="margin-bottom:8px">Tentatives</div>`;
+    for (const g of ST.guesses) {
+      const win=g===ST.target;
+      h+=`<div class="h-item">
+        <div class="h-hd">
+          <div class="h-tex">${tex(g.latex)}</div>
+          <div class="h-nm">${g.name}</div>
+          <div class="h-badge ${win?"win":"miss"}">${win?"✓ Correct":"✗ Raté"}</div>
         </div>
         <div class="hcats">`;
       for (const cat of CATS) {
-        const st = catStatus(g, cat.key);
-        let arrowHtml = "";
-        if (cat.ordinal && st !== "correct") {
-          const order = cat.key === "era" ? ERA_ORDER : null;
-          const gv = cat.key === "complexity" ? g.complexity : g[cat.key];
-          const tv = cat.key === "complexity" ? STATE.target.complexity : STATE.target[cat.key];
-          const arr = order ? ordinalArrow(gv, tv, order) : ordinalArrow(gv, tv, null);
-          if (arr) arrowHtml = `<span class="arrow">${arr}</span>`;
-        }
-        h += `<div class="hcat ${st}">
-          <div class="hcat-label">${cat.icon} ${cat.label}</div>
-          <div class="hcat-val">${catDisplay(g, cat.key)} ${arrowHtml}</div>
+        const st=catStatus(g,cat.key,ST.target);
+        const arr=st!=="correct"?arrowFor(g,cat.key,ST.target):"";
+        h+=`<div class="hc ${st}">
+          <div class="hc-lbl">${cat.icon} ${cat.label}</div>
+          <div class="hc-val">${catDisplay(g,cat.key)}${arr?` <span class="arr">${arr}</span>`:""}</div>
         </div>`;
       }
-      h += `</div></div>`;
+      h+=`</div></div>`;
     }
-    h += `</div>`;
+    h+=`</div>`;
   }
 
-  /* ── Guess selector ── */
-  if (!STATE.gameOver) {
-    const guessed = new Set(STATE.guesses);
-    const filtered = FORMULAS.filter(f => {
+  /* GUESS SELECTOR */
+  if (!ST.gameOver) {
+    const guessed=new Set(ST.guesses);
+    const q=ST.filter.toLowerCase();
+    const filtered=data.filter(f=>{
       if (guessed.has(f)) return false;
-      const q = STATE.filter.toLowerCase();
-      return !q ||
-        f.name.toLowerCase().includes(q) ||
-        f.author.toLowerCase().includes(q) ||
-        f.domain.toLowerCase().includes(q) ||
-        f.latex.toLowerCase().includes(q);
+      return !q||f.name.toLowerCase().includes(q)||f.domain.toLowerCase().includes(q)||f.operation.toLowerCase().includes(q);
     });
-
-    h += `<div class="guess-section">
-      <div class="section-label">Choisissez une formule (${FORMULAS.length - guessed.size} restantes)</div>
-      <div class="search-wrap">
-        <input class="search-input" id="search-field" type="text"
-          placeholder="Rechercher par nom, auteur, domaine…"
-          value="${STATE.filter.replace(/"/g,'&quot;')}"
-          oninput="onFilter(this.value)">
+    h+=`<div class="guess-wrap">
+      <div class="sec-hd">
+        <span class="sec-lbl">Choisissez</span>
+        <span class="sec-sub">${data.length-guessed.size} disponibles</span>
       </div>
-      <div class="guess-options">`;
+      <div class="search-box">
+        <span class="s-ico">🔍</span>
+        <input id="sf" type="text" placeholder="Filtrer par nom ou domaine…"
+          value="${ST.filter.replace(/"/g,"&quot;")}" oninput="onFilter(this.value)">
+      </div>
+      <div class="glist">`;
     for (const f of filtered) {
-      const idx = FORMULAS.indexOf(f);
-      h += `<button class="guess-btn" onclick="makeGuess(${idx})">
-        <div class="guess-btn-tex">${tex(f.latex)}</div>
-        <div class="guess-btn-name">${f.name}</div>
-        <div class="guess-btn-domain">${f.domain}</div>
+      h+=`<button class="gb" onclick="makeGuess(${data.indexOf(f)})">
+        <div class="gb-tex">${tex(f.latex)}</div>
+        <div class="gb-nm">${f.name}</div>
+        <div class="gb-tag">${f.domain}</div>
       </button>`;
     }
-    if (filtered.length === 0)
-      h += `<div style="padding:12px;color:var(--chalk-dim);font-style:italic">Aucun résultat.</div>`;
-    h += `</div></div>`;
+    if (!filtered.length) h+=`<div style="padding:12px;color:var(--chalk-dim);font-style:italic">Aucun résultat.</div>`;
+    h+=`</div></div>`;
   }
 
-  area.innerHTML = h;
-
-  // Restore search focus
-  if (!STATE.gameOver && STATE.filter) {
-    const sf = document.getElementById("search-field");
-    if (sf) { sf.focus(); sf.setSelectionRange(STATE.filter.length, STATE.filter.length); }
+  area.innerHTML=h;
+  if (!ST.gameOver&&ST.filter) {
+    const sf=document.getElementById("sf");
+    if (sf){sf.focus();sf.setSelectionRange(ST.filter.length,ST.filter.length);}
   }
 }
 
-function onFilter(val) {
-  STATE.filter = val;
-  render();
-  const sf = document.getElementById("search-field");
-  if (sf) { sf.focus(); sf.setSelectionRange(val.length, val.length); }
+function onFilter(v) {
+  ST.filter=v; render();
+  const sf=document.getElementById("sf");
+  if (sf){sf.focus();sf.setSelectionRange(v.length,v.length);}
 }
 
-// ═══════════════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════════════
+// Init
 loadStats();
+// Set initial accent
+const mo=MODES[ST.mode];
+document.documentElement.style.setProperty("--accent",mo.accent);
+document.documentElement.style.setProperty("--accent-bg",mo.accentBg);
+document.documentElement.style.setProperty("--accent-bd",mo.accentBd);
 pickFormula();
 render();
 </script>
